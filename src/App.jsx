@@ -1,5 +1,5 @@
 // src/App.jsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Analytics } from '@vercel/analytics/react'
 import { premierLeagueTeams } from './data/teams'
 import { supabase } from './lib/supabase'
@@ -16,6 +16,21 @@ function App() {
     message: '',
     isUpdate: false
   })
+  const [version, setVersion] = useState('loading...')
+
+  // Load version info on component mount
+  useEffect(() => {
+    fetch('/version.json')
+      .then(res => res.json())
+      .then(data => {
+        setVersion(data.version)
+        console.log('🚀 App Version:', data.version, 'Built:', data.buildTime)
+      })
+      .catch(() => {
+        setVersion('dev')
+        console.log('🚀 App Version: dev mode')
+      })
+  }, [])
 
   const handleSubmit = async () => {
     if (!userEmail.trim() || !userName.trim()) {
@@ -193,7 +208,7 @@ function App() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-xs text-gray-500">
-          MVP by Johnny • Group: dev
+          MVP by Johnny • Group: dev • {version}
         </div>
       </div>
 
