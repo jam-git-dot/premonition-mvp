@@ -1,0 +1,22 @@
+export const premierLeagueTeams = [
+    { id: 'arsenal', name: 'Arsenal' },
+    { id: 'aston-villa', name: 'Aston Villa' },
+    { id: 'bournemouth', name: 'AFC Bournemouth' },
+    { id: 'brentford', name: 'Brentford' },
+    { id: 'brighton', name: 'Brighton & Hove Albion' },
+    { id: 'burnley', name: 'Burnley' },
+    { id: 'chelsea', name: 'Chelsea' },
+    { id: 'crystal-palace', name: 'Crystal Palace' },
+    { id: 'everton', name: 'Everton' },
+    { id: 'fulham', name: 'Fulham' },
+    { id: 'leeds', name: 'Leeds United' },
+    { id: 'liverpool', name: 'Liverpool' },
+    { id: 'man-city', name: 'Manchester City' },
+    { id: 'man-united', name: 'Manchester United' },
+    { id: 'newcastle', name: 'Newcastle United' },
+    { id: 'nottingham-forest', name: 'Nottingham Forest' },
+    { id: 'sunderland', name: 'Sunderland' },
+    { id: 'tottenham', name: 'Tottenham Hotspur' },
+    { id: 'west-ham', name: 'West Ham United' },
+    { id: 'wolves', name: 'Wolverhampton Wanderers' }
+  ];
