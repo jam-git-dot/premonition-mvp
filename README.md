@@ -236,8 +236,8 @@ npm run preview      # Preview production build locally
 
 **Created by:** Johnny  
 **Group:** dev  
-**Repository:** [GitHub URL]  
-**Live Site:** [Vercel URL]  
+**Repository:** [https://github.com/jam-git-dot/premonition-mvp]  
+**Live Site:** [[Vercel URL](https://premonition-mvp.vercel.app)]  
 **Contact:** [Your contact info]
 
 ---

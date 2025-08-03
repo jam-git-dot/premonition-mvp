@@ -169,10 +169,10 @@ function App() {
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            ⚽ Premonition
+            ⚽ Predict the 2025-2026 Premier League Standings
           </h1>
           <p className="text-gray-600 text-sm">
-            Predict the 2025-26 Premier League final table
+            Prem-o-nition
           </p>
         </div>
 
