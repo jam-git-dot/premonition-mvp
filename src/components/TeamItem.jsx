@@ -17,6 +17,33 @@ function TeamItem({ team, position }) {
     transition,
   }
 
+  // Team colors and short names for logos
+  const getTeamInfo = (teamId) => {
+    const teamData = {
+      'arsenal': { colors: 'bg-red-600', short: 'ARS', primary: '#DC143C', secondary: '#FFFFFF' },
+      'aston-villa': { colors: 'bg-purple-800', short: 'AVL', primary: '#7B1342', secondary: '#94D3E0' },
+      'bournemouth': { colors: 'bg-red-500', short: 'BOU', primary: '#DA020E', secondary: '#000000' },
+      'brentford': { colors: 'bg-red-500', short: 'BRE', primary: '#FB0E00', secondary: '#FFF200' },
+      'brighton': { colors: 'bg-blue-500', short: 'BRI', primary: '#0057B8', secondary: '#FFCD00' },
+      'burnley': { colors: 'bg-purple-900', short: 'BUR', primary: '#6C1D45', secondary: '#99D6EA' },
+      'chelsea': { colors: 'bg-blue-600', short: 'CHE', primary: '#034694', secondary: '#FFFFFF' },
+      'crystal-palace': { colors: 'bg-blue-800', short: 'CRY', primary: '#1B458F', secondary: '#C4122E' },
+      'everton': { colors: 'bg-blue-700', short: 'EVE', primary: '#003399', secondary: '#FFFFFF' },
+      'fulham': { colors: 'bg-white border', short: 'FUL', primary: '#FFFFFF', secondary: '#000000' },
+      'leeds': { colors: 'bg-white border', short: 'LEE', primary: '#FFFFFF', secondary: '#1D428A' },
+      'liverpool': { colors: 'bg-red-700', short: 'LIV', primary: '#C8102E', secondary: '#00B2A9' },
+      'man-city': { colors: 'bg-sky-500', short: 'MCI', primary: '#6CABDD', secondary: '#1C2C5B' },
+      'man-united': { colors: 'bg-red-600', short: 'MUN', primary: '#DA020E', secondary: '#FBE122' },
+      'newcastle': { colors: 'bg-black', short: 'NEW', primary: '#241F20', secondary: '#FFFFFF' },
+      'nottingham-forest': { colors: 'bg-red-700', short: 'NFO', primary: '#DD0000', secondary: '#FFFFFF' },
+      'sunderland': { colors: 'bg-red-600', short: 'SUN', primary: '#C8102E', secondary: '#FFFFFF' },
+      'tottenham': { colors: 'bg-white border', short: 'TOT', primary: '#FFFFFF', secondary: '#132257' },
+      'west-ham': { colors: 'bg-purple-900', short: 'WHU', primary: '#7A263A', secondary: '#1BB1E7' },
+      'wolves': { colors: 'bg-orange-500', short: 'WOL', primary: '#FDB462', secondary: '#231F20' }
+    }
+    return teamData[teamId] || { colors: 'bg-gray-500', short: 'TBD', primary: '#6B7280', secondary: '#FFFFFF' }
+  }
+
   // Different styling based on position
   const getPositionStyle = (pos) => {
     if (pos <= 4) {
@@ -36,13 +63,16 @@ function TeamItem({ team, position }) {
     return 'bg-white border-l-4 border-l-gray-200'
   }
 
-  const getPositionBadge = (pos) => {
-    if (pos <= 4) return '🏆' // Champions League
-    if (pos <= 6) return '🥉' // Europa League
-    if (pos <= 7) return '🏅' // Conference League
-    if (pos >= 18) return '⬇️' // Relegation
-    return '⚽' // Mid-table
+  const getPositionLabel = (pos) => {
+    if (pos <= 4) return { emoji: '🏆', text: 'CL' } // Champions League
+    if (pos <= 6) return { emoji: '🥉', text: 'EL' } // Europa League
+    if (pos <= 7) return { emoji: '🏅', text: 'ECL' } // Conference League
+    if (pos >= 18) return { emoji: '⬇️', text: 'REL' } // Relegation
+    return null // Mid-table
   }
+
+  const teamInfo = getTeamInfo(team.id)
+  const positionLabel = getPositionLabel(position)
 
   return (
     <div
@@ -58,21 +88,52 @@ function TeamItem({ team, position }) {
       {...listeners}
     >
       <div className="flex items-center justify-between px-4 py-3">
-        {/* Position and Badge */}
+        {/* Left side: Label + Position + Logo + Team Name */}
         <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2">
+          {/* Position Label (CL, EL, etc.) - Always reserve space */}
+          <div className="flex items-center space-x-1 min-w-[52px]">
+            {positionLabel ? (
+              <>
+                <span className="text-xs font-semibold text-gray-500">
+                  {positionLabel.text}
+                </span>
+                <span className="text-sm">
+                  {positionLabel.emoji}
+                </span>
+              </>
+            ) : (
+              // Empty space to maintain alignment
+              <span className="text-xs">&nbsp;</span>
+            )}
+          </div>
+          
+          {/* Position Number */}
+          <div className="flex items-center space-x-3">
             <span className="text-sm font-bold text-gray-700 w-6 text-center">
               {position}
             </span>
-            <span className="text-lg">
-              {getPositionBadge(position)}
+            
+            {/* Team Logo/Badge */}
+            <div 
+              className={`
+                ${teamInfo.colors} 
+                w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
+                ${teamInfo.colors.includes('bg-white') ? 'text-gray-800' : 'text-white'}
+                shadow-sm
+              `}
+              style={{
+                backgroundColor: teamInfo.primary,
+                color: teamInfo.secondary
+              }}
+            >
+              {teamInfo.short}
+            </div>
+            
+            {/* Team Name */}
+            <span className="font-medium text-gray-800">
+              {team.name}
             </span>
           </div>
-          
-          {/* Team Name */}
-          <span className="font-medium text-gray-800">
-            {team.name}
-          </span>
         </div>
 
         {/* Drag Handle */}
