@@ -4,6 +4,30 @@ import { Analytics } from '@vercel/analytics/react'
 import { premierLeagueTeams } from './data/teams'
 import { supabase } from './lib/supabase'
 import TeamList from './components/TeamList'
+import { track } from '@vercel/analytics'
+
+// Modal component defined directly in this file
+function Modal({ isOpen, onClose, children }) {
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-sm w-full max-h-96 overflow-y-auto">
+        {children}
+        
+        {/* Close button */}
+        <div className="px-6 pb-4">
+          <button
+            onClick={onClose}
+            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function App() {
   const [userEmail, setUserEmail] = useState('')
@@ -46,7 +70,6 @@ function App() {
     }
 
     setIsSubmitting(true)
-    setSubmitError(null)
 
     try {
       const submission = {
@@ -66,9 +89,10 @@ function App() {
         .single()
 
       let result
+      const isUpdate = !!existingData
+      
       if (existingData) {
         // Update existing prediction
-        setIsUpdating(true)
         result = await supabase
           .from('predictions')
           .update({
@@ -90,18 +114,39 @@ function App() {
         throw result.error
       }
 
-      console.log(`Successfully ${existingData ? 'updated' : 'saved'}:`, result.data)
-      setIsSubmitted(true)
+      console.log(`Successfully ${isUpdate ? 'updated' : 'saved'}:`, result.data)
       
-      // Reset success message after 5 seconds
-      setTimeout(() => {
-        setIsSubmitted(false)
-        setIsUpdating(false)
-      }, 5000)
+      // Track successful submission
+      track('prediction_submitted', { 
+        group: 'dev',
+        teams_count: rankings.length,
+        action: isUpdate ? 'update' : 'create'
+      })
+      
+      // Show success modal
+      setModalState({
+        isOpen: true,
+        type: 'success',
+        message: '',
+        isUpdate
+      })
 
     } catch (error) {
       console.error('Error saving prediction:', error)
-      setSubmitError(error.message)
+      
+      // Track failed submission
+      track('prediction_failed', { 
+        group: 'dev',
+        error: error.message
+      })
+      
+      // Show error modal
+      setModalState({
+        isOpen: true,
+        type: 'error',
+        message: error.message,
+        isUpdate: false
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -110,10 +155,12 @@ function App() {
   const handleReset = () => {
     setUserEmail('')
     setUserName('')
-    setRankings([...premierLeagueTeams]) // Create a new array to reset order
-    setIsSubmitted(false)
-    setSubmitError(null)
-    setIsUpdating(false)
+    setRankings([...premierLeagueTeams])
+    setModalState({ isOpen: false, type: null, message: '', isUpdate: false })
+  }
+
+  const closeModal = () => {
+    setModalState({ isOpen: false, type: null, message: '', isUpdate: false })
   }
 
   return (
@@ -128,20 +175,6 @@ function App() {
             Predict the 2025-26 Premier League final table
           </p>
         </div>
-
-        {/* Success Message */}
-        {isSubmitted && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 text-center">
-            🎉 Prediction {isUpdating ? 'updated' : 'saved'} successfully!
-          </div>
-        )}
-
-        {/* Error Message */}
-        {submitError && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-center">
-            ❌ Error: {submitError}
-          </div>
-        )}
 
         {/* User Input */}
         <div className="space-y-4 mb-6">
