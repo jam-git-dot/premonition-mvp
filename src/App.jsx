@@ -9,10 +9,13 @@ function App() {
   const [userEmail, setUserEmail] = useState('')
   const [userName, setUserName] = useState('')
   const [rankings, setRankings] = useState(premierLeagueTeams)
-  const [isSubmitted, setIsSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState(null)
-  const [isUpdating, setIsUpdating] = useState(false)
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    type: null, // 'success' or 'error'
+    message: '',
+    isUpdate: false
+  })
 
   const handleSubmit = async () => {
     if (!userEmail.trim() || !userName.trim()) {
@@ -174,10 +177,10 @@ function App() {
         <div className="mt-6 space-y-3">
           <button
             onClick={handleSubmit}
-            disabled={!userEmail.trim() || !userName.trim() || isSubmitting || isSubmitted}
+            disabled={!userEmail.trim() || !userName.trim() || isSubmitting}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-md transition-colors"
           >
-            {isSubmitting ? '💾 Saving...' : isSubmitted ? (isUpdating ? '✓ Updated!' : '✓ Saved!') : 'Submit Prediction'}
+            {isSubmitting ? '💾 Saving...' : 'Submit Prediction'}
           </button>
           
           <button
@@ -193,6 +196,50 @@ function App() {
           MVP by Johnny • Group: dev
         </div>
       </div>
+
+      {/* Success/Error Modal */}
+      <Modal isOpen={modalState.isOpen} onClose={closeModal}>
+        {modalState.type === 'success' ? (
+          <div className="p-6 text-center">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-2xl font-bold text-green-700 mb-2">
+              {modalState.isUpdate ? 'Updated!' : 'Success!'}
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Prediction {modalState.isUpdate ? 'updated' : 'saved'} successfully!
+            </p>
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <p className="text-sm text-gray-700">
+                <strong>Email:</strong> {userEmail}
+              </p>
+              <p className="text-sm text-gray-700">
+                <strong>Name:</strong> {userName}
+              </p>
+            </div>
+            <p className="text-xs text-gray-500">
+              Use the same email to update your prediction anytime!
+            </p>
+          </div>
+        ) : (
+          <div className="p-6 text-center">
+            <div className="text-6xl mb-4">❌</div>
+            <h2 className="text-2xl font-bold text-red-700 mb-2">
+              Error!
+            </h2>
+            <p className="text-gray-600 mb-4">
+              There was a problem saving your prediction.
+            </p>
+            <div className="bg-red-50 rounded-lg p-4 mb-4">
+              <p className="text-sm text-red-700">
+                {modalState.message}
+              </p>
+            </div>
+            <p className="text-xs text-gray-500">
+              Please try again or contact support if the problem persists.
+            </p>
+          </div>
+        )}
+      </Modal>
       
       {/* Vercel Analytics */}
       <Analytics />
