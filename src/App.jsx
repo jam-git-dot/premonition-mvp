@@ -1,5 +1,6 @@
 // src/App.jsx
 import { useState } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import { premierLeagueTeams } from './data/teams'
 import { supabase } from './lib/supabase'
 import TeamList from './components/TeamList'
@@ -189,9 +190,12 @@ function App() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-xs text-gray-500">
-          In Arne We Slot • GroupType: dev
+          MVP by Johnny • Group: dev
         </div>
       </div>
+      
+      {/* Vercel Analytics */}
+      <Analytics />
     </div>
   )
 }
