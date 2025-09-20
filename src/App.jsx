@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { premierLeagueTeams } from './data/teams'
 import { supabase } from './lib/supabase'
 import TeamList from './components/TeamList'
+import CompetitionDashboard from './components/CompetitionDashboard'
 import { track } from '@vercel/analytics'
 
 // Modal component defined directly in this file
@@ -30,6 +31,10 @@ function Modal({ isOpen, onClose, children }) {
 }
 
 function App() {
+  // Check environment variable for app mode
+  const appMode = import.meta.env.VITE_APP_MODE || 'dashboard';
+  
+  // Original prediction state (for prediction mode)
   const [userEmail, setUserEmail] = useState('')
   const [userName, setUserName] = useState('')
   const [rankings, setRankings] = useState(premierLeagueTeams)
@@ -163,6 +168,24 @@ function App() {
     setModalState({ isOpen: false, type: null, message: '', isUpdate: false })
   }
 
+  // Render dashboard mode
+  if (appMode === 'dashboard') {
+    return (
+      <div>
+        <CompetitionDashboard />
+        
+        {/* Footer */}
+        <div className="text-center py-4 text-xs text-gray-500 bg-gray-50">
+          Premonition Competition • Made by Johnny • {version}
+        </div>
+        
+        {/* Vercel Analytics */}
+        <Analytics />
+      </div>
+    )
+  }
+
+  // Render original prediction mode
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-4 px-4">
       <div className="max-w-md mx-auto">
