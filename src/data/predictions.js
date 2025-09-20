@@ -24,7 +24,7 @@ export const realPredictionsStorage = [
   },
   {
     name: "Arzan",
-    groups: ["LIV"],
+    groups: ["FPL"],
     rankings: ["Liverpool","Manchester City","Chelsea","Arsenal","Aston Villa","Newcastle United","Tottenham Hotspur","Brighton & Hove Albion","Manchester United","Everton","Crystal Palace","Nottingham Forest","Brentford","Fulham","AFC Bournemouth","West Ham United","Wolverhampton Wanderers","Leeds United","Burnley","Sunderland"]
     //        ["Liverpool","Manchester City","Chelsea","Arsenal","Aston Villa","Newcastle United","Tottenham Hotspur","Brighton & Hove Albion","Manchester United","Everton","Crystal Palace","Nottingham Forest","Brentford","Fulham","AFC Bournemouth","West Ham United","Wolverhampton Wanderers","Leeds United","Burnley","Sunderland"]
   },
