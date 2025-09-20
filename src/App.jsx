@@ -176,7 +176,7 @@ function App() {
         
         {/* Footer */}
         <div className="text-center py-4 text-xs text-gray-500 bg-gray-50">
-          Premonition Competition • Made by Johnny • {version}
+          Bing Bong • {version}
         </div>
         
         {/* Vercel Analytics */}

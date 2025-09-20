@@ -459,7 +459,7 @@ function CompetitionDashboard() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
-          <p>Powered by Premonition • Data updated after each Premier League matchweek</p>
+          <p>Through MW4 - Data updated after each Premier League matchweek.</p>
         </div>
 
         {/* Scoring Modal */}
