@@ -1,32 +1,9 @@
-// src/data/competitionData.js
-// Real competition data and scoring for Premonition dashboard
+// THIS SHOULD NOT BE MODIFIED
+// This is just here for testing purposes. In a real app, this data would come from a backend database.
+// Each entry represents a user's prediction for the final Premier League standings.
+// The "groups" field indicates which group(s) the user belongs to (e.g., "LIV" for Klopptoberfest, "TOG" for ToggaBoys Fantrax.
 
-// Current Premier League table after MW4
-export const currentStandings = {
-  1: "Liverpool",
-  2: "Arsenal", 
-  3: "Tottenham Hotspur",
-  4: "AFC Bournemouth",
-  5: "Chelsea",
-  6: "Everton",
-  7: "Sunderland", 
-  8: "Manchester City",
-  9: "Crystal Palace",
-  10: "Newcastle United",
-  11: "Fulham",
-  12: "Brentford",
-  13: "Brighton & Hove Albion",
-  14: "Manchester United",
-  15: "Nottingham Forest",
-  16: "Leeds United",
-  17: "Burnley",
-  18: "West Ham United",
-  19: "Aston Villa",
-  20: "Wolverhampton Wanderers"
-};
-
-// Real predictions from your 24 friends (exact data from CSV + manual additions)
-export const realPredictions = [
+export const realPredictionsStorage = [
   {
     name: "Nick C",
     groups: ["LIV"], // Can add "TOG" here if he's in both: ["LIV", "TOG"]
@@ -173,66 +150,3 @@ export const realPredictions = [
   }
 ];
 
-// Available groups for filtering
-export const availableGroups = [
-  { id: "all", name: "All Entries", count: 24 },
-  { id: "LIV", name: "Klopptoberfest Only", count: 10 },
-  { id: "TOG", name: "Fantrax FPL Only", count: 14 },
-  { id: "FPL", name: "FPL Group", count: 2 }
-];
-
-// Function to calculate competition scores (with optional group filtering)
-export function calculateCompetitionScores(selectedGroup = "all") {
-  // Create team position lookup
-  const teamCurrentPosition = {};
-  Object.entries(currentStandings).forEach(([pos, team]) => {
-    teamCurrentPosition[team] = parseInt(pos);
-  });
-
-  // Filter predictions by group (supports multiple groups per person)
-  const filteredPredictions = selectedGroup === "all" 
-    ? realPredictions 
-    : realPredictions.filter(prediction => {
-        // Check if user is in the selected group
-        return prediction.groups.includes(selectedGroup);
-      });
-
-  // Calculate scores for each predictor
-  const results = filteredPredictions.map(prediction => {
-    let totalScore = 0;
-    const teamScores = {};
-
-    prediction.rankings.forEach((teamName, index) => {
-      const predictedPosition = index + 1;
-      const actualPosition = teamCurrentPosition[teamName];
-      
-      if (actualPosition) {
-        const score = Math.abs(predictedPosition - actualPosition);
-        totalScore += score;
-        teamScores[teamName] = {
-          score: score,
-          predictedPosition: predictedPosition,
-          actualPosition: actualPosition,
-          difference: predictedPosition - actualPosition
-        };
-      }
-    });
-
-    return {
-      name: prediction.name,
-      groups: prediction.groups,
-      totalScore: totalScore,
-      teamScores: teamScores
-    };
-  });
-
-  // Sort by total score (lowest = best, like golf)
-  return results.sort((a, b) => a.totalScore - b.totalScore);
-}
-
-// Get teams ordered by current table position
-export function getTeamsInTableOrder() {
-  return Object.entries(currentStandings)
-    .sort(([a], [b]) => parseInt(a) - parseInt(b))
-    .map(([pos, team]) => ({ position: parseInt(pos), name: team }));
-}

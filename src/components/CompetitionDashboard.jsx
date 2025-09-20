@@ -5,6 +5,7 @@ import GroupToggle from './GroupToggle'
 
 function CompetitionDashboard() {
   const [selectedGroup, setSelectedGroup] = useState('all');
+  const [viewMode, setViewMode] = useState('expanded'); // 'expanded' or 'simplified'
   const competitionResults = calculateCompetitionScores(selectedGroup);
   const teamsInOrder = getTeamsInTableOrder();
 
@@ -74,7 +75,7 @@ function CompetitionDashboard() {
             Premier League Prediction Leaderboard • After Matchweek 4
           </p>
           <p className="text-sm text-gray-500 mt-2">
-            Lower Score = More Correct • Score = abs [ Prediction - Actual Position ] • +/- Shown for Directionality Only
+            Score = abs [Prediction - Actual] • Lower Score = More Correct • The (+) and (-) are shown for directionality only.
           </p>
         </div>
 
@@ -83,6 +84,34 @@ function CompetitionDashboard() {
           selectedGroup={selectedGroup}
           onGroupChange={setSelectedGroup}
         />
+
+        {/* View Mode Toggle */}
+        <div className="bg-white rounded-lg shadow-lg p-4 mb-6">
+          <div className="flex justify-center">
+            <div className="bg-gray-100 rounded-lg p-1 flex">
+              <button
+                onClick={() => setViewMode('expanded')}
+                className={`px-4 py-2 rounded-md font-medium transition-colors text-sm ${
+                  viewMode === 'expanded'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                📊 Expanded View
+              </button>
+              <button
+                onClick={() => setViewMode('simplified')}
+                className={`px-4 py-2 rounded-md font-medium transition-colors text-sm ${
+                  viewMode === 'simplified'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                📋 Simplified View
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* Compact Top 4 + Last Place */}
         <div className="bg-white rounded-lg shadow-lg p-4 mb-6">
@@ -151,22 +180,30 @@ function CompetitionDashboard() {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-700 sticky left-0 bg-gray-50 z-10 min-w-[60px]">
+                  <th className={`text-left font-semibold text-gray-700 sticky left-0 bg-gray-50 z-10 ${
+                    viewMode === 'expanded' ? 'px-4 py-3 min-w-[60px]' : 'px-2 py-2 min-w-[40px]'
+                  }`}>
                     Rank
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-700 sticky left-16 bg-gray-50 z-10 min-w-[120px]">
+                  <th className={`text-left font-semibold text-gray-700 sticky bg-gray-50 z-10 ${
+                    viewMode === 'expanded' ? 'px-4 py-3 left-16 min-w-[120px]' : 'px-2 py-2 left-12 min-w-[80px]'
+                  }`}>
                     Predictor
                   </th>
-                  <th className="px-3 py-3 text-center font-semibold text-gray-700 sticky left-40 bg-gray-50 z-10 min-w-[80px]">
-                    Total Score
+                  <th className={`text-center font-semibold text-gray-700 sticky bg-gray-50 z-10 ${
+                    viewMode === 'expanded' ? 'px-3 py-3 left-40 min-w-[80px]' : 'px-2 py-2 left-24 min-w-[50px]'
+                  }`}>
+                    Total
                   </th>
                   {teamsInOrder.map(team => (
-                    <th key={team.name} className="px-1 py-3 text-center text-sm font-bold text-gray-700 min-w-[70px]">
+                    <th key={team.name} className={`text-center font-bold text-gray-700 ${
+                      viewMode === 'expanded' ? 'px-1 py-3 text-sm min-w-[70px]' : 'px-1 py-2 text-xs min-w-[35px]'
+                    }`}>
                       <div className="flex flex-col items-center">
-                        <div className="font-bold text-gray-800">
+                        <div className={`font-bold text-gray-800 ${viewMode === 'simplified' ? 'text-xs' : ''}`}>
                           {getTeamAbbreviation(team.name)}
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className={`text-gray-500 mt-1 ${viewMode === 'expanded' ? 'text-xs' : 'text-xs'}`}>
                           #{team.position}
                         </div>
                       </div>
@@ -177,33 +214,48 @@ function CompetitionDashboard() {
               <tbody>
                 {competitionResults.map((result, index) => (
                   <tr key={result.name} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                    <td className="px-4 py-3 font-bold text-gray-900 sticky left-0 bg-inherit z-10">
+                    <td className={`font-bold text-gray-900 sticky left-0 bg-inherit z-10 ${
+                      viewMode === 'expanded' ? 'px-4 py-3' : 'px-2 py-1'
+                    }`}>
                       {index + 1}
                     </td>
-                    <td className="px-4 py-3 font-semibold text-gray-900 sticky left-16 bg-inherit z-10">
+                    <td className={`font-semibold text-gray-900 sticky bg-inherit z-10 ${
+                      viewMode === 'expanded' ? 'px-4 py-3 left-16' : 'px-2 py-1 left-12 text-sm'
+                    }`}>
                       {result.name}
                     </td>
-                    <td className="px-3 py-3 text-center font-bold text-lg sticky left-40 bg-inherit z-10">
+                    <td className={`text-center font-bold sticky bg-inherit z-10 ${
+                      viewMode === 'expanded' ? 'px-3 py-3 text-lg left-40' : 'px-2 py-1 text-sm left-24'
+                    }`}>
                       {result.totalScore}
                     </td>
                     {teamsInOrder.map(team => {
                       const teamData = result.teamScores[team.name];
                       return (
-                        <td key={team.name} className="px-1 py-2 text-center">
+                        <td key={team.name} className={viewMode === 'expanded' ? 'px-1 py-2 text-center' : 'px-0 py-1 text-center'}>
                           {teamData ? (
-                            <div className={`
-                              px-1 py-2 rounded text-xs font-medium
-                              ${getCellStyle(teamData.score)}
-                            `}>
-                              <div className="text-sm font-bold mb-1">
+                            viewMode === 'expanded' ? (
+                              <div className={`
+                                px-1 py-2 rounded text-xs font-medium
+                                ${getCellStyle(teamData.score)}
+                              `}>
+                                <div className="text-sm font-bold mb-1">
+                                  {formatCellContent(teamData, team.name).score}
+                                </div>
+                                <div className="text-xs leading-tight">
+                                  {formatCellContent(teamData, team.name).details}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className={`
+                                px-1 py-1 rounded text-xs font-bold
+                                ${getCellStyle(teamData.score)}
+                              `}>
                                 {formatCellContent(teamData, team.name).score}
                               </div>
-                              <div className="text-xs leading-tight">
-                                {formatCellContent(teamData, team.name).details}
-                              </div>
-                            </div>
+                            )
                           ) : (
-                            <span className="text-gray-400">-</span>
+                            <span className="text-gray-400 text-xs">-</span>
                           )}
                         </td>
                       );
