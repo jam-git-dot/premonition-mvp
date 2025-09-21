@@ -1,14 +1,18 @@
 // src/components/CompetitionDashboard.jsx
 import { useState } from 'react'
-import { calculateCompetitionScores, calculateCompetitionScoresForWeek, getTeamsInTableOrder, currentStandings, latestMatchweek, availableMatchweeks } from '../data/competitionData'
+import { calculateCompetitionScores, calculateCompetitionScoresForWeek, getTeamsInTableOrder, currentStandings, latestMatchweek, availableMatchweeks, realPredictions } from '../data/competitionData'
 import { availableGroups } from '../data/competitionData'
 import { getGroupData } from '../data/groupDataProcessor';
 import { getTeamAbbreviation } from '../data/teamInfo';
+import CellPopup from './CellPopup';
 
 function CompetitionDashboard() {
   const [selectedGroup, setSelectedGroup] = useState('all');
   const [viewMode, setViewMode] = useState('simplified'); // 'expanded' or 'simplified'
   const [showScoringModal, setShowScoringModal] = useState(false);
+  const [activeUser, setActiveUser] = useState(null);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(true);
   
   // Matchweek (auto from data)
   // Matchweek selector (defaults to latest)
@@ -38,11 +42,15 @@ function CompetitionDashboard() {
       buttonWeight: 'font-medium',
       dataWeight: 'font-bold'
     },
+    controls: {
+      padding: 'px-4 py-2',          // uniform button padding
+      marginX: 'mx-2'                // horizontal spacing between controls
+    },
     rowTinting: {
-      opacity: '0.3',               // Adjustable tint opacity (0.1 = very subtle, 0.5 = strong)
-      firstPlace: 'bg-green-600',   // 1st place tint (dark green)
-      topFour: 'bg-green-400',      // 2nd, 3rd, 4th place tint (lighter green)
-      bottomThree: 'bg-red-500'     // Bottom 3 places tint
+      opacity: '0.3',
+      firstPlace: 'bg-green-600',   
+      topFour: 'bg-green-400',      
+      bottomThree: 'bg-red-500'     
     }
   };
   
@@ -121,17 +129,58 @@ function CompetitionDashboard() {
     return 'th';
   };
 
+  // Handler when clicking a user's name
+  const handleNameClick = (name) => {
+    setActiveUser(name);
+    setShowUserModal(true);
+  };
+
+  const [cellPopupInfo, setCellPopupInfo] = useState(null);
+
+  const handleCellClick = (userName, teamName, event) => {
+    console.log('Cell click for', userName, teamName, 'at', event.clientX, event.clientY);
+    event.stopPropagation();
+    const x = event.clientX;
+    const y = event.clientY;
+    const userResult = competitionResults.find(r => r.name === userName);
+    if (!userResult) return;
+    const teamData = userResult.teamScores[teamName];
+    const stats = groupData.statistics[teamName] || {};
+    const higherCount = realPredictions.reduce((c, p) => c + ((p.rankings.indexOf(teamName)+1) < teamData.predictedPosition ? 1 : 0), 0);
+    const worseCount = realPredictions.reduce((c, p) => c + ((p.rankings.indexOf(teamName)+1) > teamData.predictedPosition ? 1 : 0), 0);
+    const rangeRadius = stats.rangeHigh != null && stats.rangeLow != null ? Math.round((stats.rangeLow - stats.rangeHigh)/2) : null;
+    setCellPopupInfo({
+      x,
+      y,
+      userName,
+      teamName,
+      score: teamData.score,
+      predictedPosition: teamData.predictedPosition,
+      currentPosition: teamData.actualPosition,
+      stats,
+      rangeRadius
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-800 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-3">
-          <h1 className={`${THEME.fontSizes.title} ${THEME.fontStyles.titleWeight} ${THEME.colors.white} mb-2`}>
-            🏆 PREMONITION
-          </h1>
-          <p className={`${THEME.colors.grayText} ${THEME.fontSizes.subtitle}`}>
-            Premier League Prediction Leaderboard • After Matchweek {currentMatchweek}
-          </p>
+        {/* Header: centered title + matchweek, help button on right */}
+        <div className="relative mb-3">
+          <div className="text-center">
+            <h1 className={`${THEME.fontSizes.title} ${THEME.fontStyles.titleWeight} ${THEME.colors.white} mb-1`}>
+              🏆 PREMONITION
+            </h1>
+            <p className={`${THEME.colors.grayText} ${THEME.fontSizes.subtitle}`}>
+              Premier League Prediction Leaderboard • After Matchweek {currentMatchweek}
+            </p>
+          </div>
+          <button
+            onClick={() => setShowScoringModal(true)}
+            className={`absolute top-0 right-0 ${THEME.colors.lightBlue} hover:bg-gray-700 text-gray-300 hover:text-white ${THEME.fontStyles.buttonWeight} rounded-md transition-colors ${THEME.fontSizes.button} ${THEME.controls.padding}`}
+          >
+            ?
+          </button>
         </div>
 
         {/* Compact Centered Controls */}
@@ -162,214 +211,201 @@ function CompetitionDashboard() {
         </div>
 
         {/* Minimal Vertical Leaderboard - Now with fixed width and improved styling */}
-        <div className="flex justify-center mb-6">
-          <div className="bg-gray-900 rounded-lg shadow-lg p-4 max-w-[450px] w-full">
-            {/* Title */}
-            <h3 className={`${THEME.fontSizes.subtitle} ${THEME.fontStyles.titleWeight} ${THEME.colors.white} text-center mb-1`}>
-              LEADERBOARD
-            </h3>
-            <div className={`text-center ${THEME.fontSizes.dataTable} ${THEME.colors.grayText} mb-4`}>
-              {selectedGroup === 'all' ? 'All Entries' : selectedGroup === 'LIV' ? 'Klopptoberfest' : 'Fantrax FPL'} | MW{currentMatchweek}
-            </div>
-            
-            {/* Compact Table with grouped styling */}
-            <div className="space-y-4">
-              {(() => {
-                // Group results by score to handle ties
-                const scoreGroups = {};
-                enhancedResults.forEach((result, index) => {
-                  if (index < 8) { // Only consider top 8 for potential top 4 spots
-                    const score = result.totalScore;
-                    if (!scoreGroups[score]) scoreGroups[score] = [];
-                    scoreGroups[score].push(result);
+        {showLeaderboard && (
+          <div className="flex justify-center mb-6 space-x-2">
+             <div className="bg-gray-900 rounded-lg shadow-lg p-4 max-w-[450px] w-full">
+               {/* Title */}
+               <h3 className={`${THEME.fontSizes.subtitle} ${THEME.fontStyles.titleWeight} ${THEME.colors.white} text-center mb-1`}>
+                LEADERBOARD
+              </h3>
+              <div className={`text-center ${THEME.fontSizes.dataTable} ${THEME.colors.grayText} mb-4`}>
+                {selectedGroup === 'all' ? 'All Entries' : selectedGroup === 'LIV' ? 'Klopptoberfest' : 'Fantrax FPL'} | MW{currentMatchweek}
+              </div>
+              
+              {/* Compact Table with grouped styling */}
+              <div className="space-y-4">
+                {(() => {
+                  // Group results by score to handle ties
+                  const scoreGroups = {};
+                  enhancedResults.forEach((result, index) => {
+                    if (index < 8) { // Only consider top 8 for potential top 4 spots
+                      const score = result.totalScore;
+                      if (!scoreGroups[score]) scoreGroups[score] = [];
+                      scoreGroups[score].push(result);
+                    }
+                  });
+                  
+                  const sortedScores = Object.keys(scoreGroups).map(Number).sort((a, b) => a - b);
+                  const topGroups = [];
+                  let currentPosition = 1;
+                  
+                  // Build top 3 positions with group styling
+                  for (const score of sortedScores) {
+                    if (currentPosition <= 3) {
+                      const positionGroup = scoreGroups[score];
+                      const isTied = positionGroup.length > 1;
+                      
+                      topGroups.push({
+                        position: currentPosition,
+                        people: positionGroup,
+                        score: score,
+                        isTied: isTied,
+                        isFirst: currentPosition === 1,
+                        isSecond: currentPosition === 2,
+                        isThird: currentPosition === 3
+                      });
+                      
+                      currentPosition += positionGroup.length;
+                    }
                   }
-                });
-                
-                const sortedScores = Object.keys(scoreGroups).map(Number).sort((a, b) => a - b);
-                const topGroups = [];
-                let currentPosition = 1;
-                
-                // Build top 3 positions with group styling
-                for (const score of sortedScores) {
-                  if (currentPosition <= 3) {
-                    const positionGroup = scoreGroups[score];
-                    const isTied = positionGroup.length > 1;
+                  
+                  // Build last place group
+                  const lastResult = enhancedResults[enhancedResults.length - 1];
+                  const lastScore = lastResult.totalScore;
+                  const lastPlacePeople = enhancedResults.filter(r => r.totalScore === lastScore);
+                  const lastIsTied = lastPlacePeople.length > 1;
+                  
+                  const lastGroup = {
+                    position: 'last',
+                    people: lastPlacePeople,
+                    score: lastScore,
+                    isTied: lastIsTied,
+                    isLast: true
+                  };
+                  
+                  const allSections = [];
+                  
+                  // Add Winners section
+                  if (topGroups.length > 0) {
+                    allSections.push(
+                      <div key="winners-header" className="text-center mb-2">
+                        <div className={`${THEME.colors.green} ${THEME.fontStyles.titleWeight} ${THEME.fontSizes.leaderboard}`}>WINNERS</div>
+                      </div>
+                    );
                     
-                    topGroups.push({
-                      position: currentPosition,
-                      people: positionGroup,
-                      score: score,
-                      isTied: isTied,
-                      isFirst: currentPosition === 1,
-                      isSecond: currentPosition === 2,
-                      isThird: currentPosition === 3
+                    topGroups.forEach((group, groupIndex) => {
+                      let borderColor = '';
+                      let scoreBgColor = '';
+                      let emoji = '';
+                      let positionText = '';
+                      
+                      if (group.isFirst) {
+                        borderColor = 'border-green-300 border-opacity-50';
+                        scoreBgColor = 'bg-green-300';
+                        emoji = '🥇';
+                        positionText = group.isTied ? '1st' : '1st';
+                      } else if (group.isSecond) {
+                        borderColor = 'border-gray-400 border-opacity-50';
+                        scoreBgColor = 'bg-gray-400';
+                        emoji = '🥈';
+                        positionText = group.isTied ? '2nd' : '2nd';
+                      } else if (group.isThird) {
+                        borderColor = 'border-amber-400 border-opacity-50';
+                        scoreBgColor = 'bg-amber-400';
+                        emoji = '🥉';
+                        positionText = group.isTied ? '3rd' : '3rd';
+                      }
+                      
+                      allSections.push(
+                        <div key={`winners-${groupIndex}`} className={`border-2 ${borderColor} rounded-lg p-2 space-y-1 bg-gray-800`}>
+                          {group.people.map((person, personIndex) => {
+                            // Determine when to show score cell
+                            const displayIndex = group.people.length % 2 === 0 ? 0 : Math.floor(group.people.length / 2);
+                            const showPositionAndScore = personIndex === displayIndex;
+                            return (
+                              <div key={personIndex} className="flex items-center h-12">
+                                <div className="px-3 py-2 rounded font-medium text-white text-base w-[100px] flex items-center justify-center">
+                                  {showPositionAndScore ? `${positionText} ${emoji}` : ''}
+                                </div>
+                                <div className="px-3 py-2 rounded font-medium text-white text-base flex-1 mx-2 flex items-center justify-center">
+                                  {person.isConsensus ? `${person.name} 🤖` : person.name}
+                                </div>
+                                <div className={`px-3 py-2 rounded font-medium ${showPositionAndScore ? `text-black ${scoreBgColor}` : 'text-transparent'} text-base w-[75px] flex items-center justify-center`}>
+                                  {showPositionAndScore ? group.score : ''}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
                     });
-                    
-                    currentPosition += positionGroup.length;
                   }
-                }
-                
-                // Build last place group
-                const lastResult = enhancedResults[enhancedResults.length - 1];
-                const lastScore = lastResult.totalScore;
-                const lastPlacePeople = enhancedResults.filter(r => r.totalScore === lastScore);
-                const lastIsTied = lastPlacePeople.length > 1;
-                
-                const lastGroup = {
-                  position: 'last',
-                  people: lastPlacePeople,
-                  score: lastScore,
-                  isTied: lastIsTied,
-                  isLast: true
-                };
-                
-                const allSections = [];
-                
-                // Add Winners section
-                if (topGroups.length > 0) {
+                  
+                  // Add Wankers section
                   allSections.push(
-                    <div key="winners-header" className="text-center mb-2">
-                      <div className={`${THEME.colors.green} ${THEME.fontStyles.titleWeight} ${THEME.fontSizes.leaderboard}`}>WINNERS</div>
+                    <div key="wankers-header" className="text-center mb-2 mt-6">
+                      <div className={`${THEME.colors.red} ${THEME.fontStyles.titleWeight} ${THEME.fontSizes.leaderboard}`}>WANKERS</div>
                     </div>
                   );
                   
-                  topGroups.forEach((group, groupIndex) => {
-                    let borderColor = '';
-                    let scoreBgColor = '';
-                    let emoji = '';
-                    let positionText = '';
-                    
-                    if (group.isFirst) {
-                      borderColor = 'border-green-300 border-opacity-50';
-                      scoreBgColor = 'bg-green-300';
-                      emoji = '🥇';
-                      positionText = group.isTied ? '1st' : '1st';
-                    } else if (group.isSecond) {
-                      borderColor = 'border-gray-400 border-opacity-50';
-                      scoreBgColor = 'bg-gray-400';
-                      emoji = '🥈';
-                      positionText = group.isTied ? '2nd' : '2nd';
-                    } else if (group.isThird) {
-                      borderColor = 'border-amber-400 border-opacity-50';
-                      scoreBgColor = 'bg-amber-400';
-                      emoji = '🥉';
-                      positionText = group.isTied ? '3rd' : '3rd';
-                    }
-                    
-                    allSections.push(
-                      <div key={`winners-${groupIndex}`} className={`border-2 ${borderColor} rounded-lg p-2 space-y-1 bg-gray-800`}>
-                        {group.people.map((person, personIndex) => {
-                          // Determine when to show score cell
-                          const displayIndex = group.people.length % 2 === 0 ? 0 : Math.floor(group.people.length / 2);
-                          const showPositionAndScore = personIndex === displayIndex;
-                          return (
-                            <div key={personIndex} className="flex items-center h-12">
-                              <div className="px-3 py-2 rounded font-medium text-white text-base w-[100px] flex items-center justify-center">
-                                {showPositionAndScore ? `${positionText} ${emoji}` : ''}
-                              </div>
-                              <div className="px-3 py-2 rounded font-medium text-white text-base flex-1 mx-2 flex items-center justify-center">
-                                {person.isConsensus ? `${person.name} 🤖` : person.name}
-                              </div>
-                              <div className={`px-3 py-2 rounded font-medium ${showPositionAndScore ? `text-black ${scoreBgColor}` : 'text-transparent'} text-base w-[75px] flex items-center justify-center`}>
-                                {showPositionAndScore ? group.score : ''}
-                              </div>
+                  const borderColor = 'border-red-400 border-opacity-50';
+                  const scoreBgColor = 'bg-red-400';
+                  const emoji = '💩';
+                  const positionText = lastGroup.isTied ? 'Last' : 'Last';
+                  
+                  allSections.push(
+                    <div key="wankers" className={`border-2 ${borderColor} rounded-lg p-2 space-y-1 bg-gray-800`}>
+                      {lastGroup.people.map((person, personIndex) => {
+                        // Determine which row should show position and score
+                        const displayIndex = lastGroup.people.length % 2 === 0 ? 0 : Math.floor(lastGroup.people.length / 2);
+                        const showPositionAndScore = personIndex === displayIndex;
+                        
+                        return (
+                          <div key={personIndex} className="flex items-center h-12">
+                            <div className="px-3 py-2 rounded font-medium text-white text-base w-[100px] flex items-center justify-center">
+                              {showPositionAndScore ? `${positionText} ${emoji}` : ''}
                             </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  });
-                }
-                
-                // Add Wankers section
-                allSections.push(
-                  <div key="wankers-header" className="text-center mb-2 mt-6">
-                    <div className={`${THEME.colors.red} ${THEME.fontStyles.titleWeight} ${THEME.fontSizes.leaderboard}`}>WANKERS</div>
-                  </div>
-                );
-                
-                const borderColor = 'border-red-400 border-opacity-50';
-                const scoreBgColor = 'bg-red-400';
-                const emoji = '💩';
-                const positionText = lastGroup.isTied ? 'Last' : 'Last';
-                
-                allSections.push(
-                  <div key="wankers" className={`border-2 ${borderColor} rounded-lg p-2 space-y-1 bg-gray-800`}>
-                    {lastGroup.people.map((person, personIndex) => {
-                      // Determine which row should show position and score
-                      const displayIndex = lastGroup.people.length % 2 === 0 ? 0 : Math.floor(lastGroup.people.length / 2);
-                      const showPositionAndScore = personIndex === displayIndex;
-                      
-                      return (
-                        <div key={personIndex} className="flex items-center h-12">
-                          <div className="px-3 py-2 rounded font-medium text-white text-base w-[100px] flex items-center justify-center">
-                            {showPositionAndScore ? `${positionText} ${emoji}` : ''}
+                            <div className="px-3 py-2 rounded font-medium text-white text-base flex-1 mx-2 flex items-center justify-center">
+                              {person.isConsensus ? `${person.name} 🤖` : person.name}
+                            </div>
+                            <div className={`px-3 py-2 rounded font-medium ${showPositionAndScore ? `text-black ${scoreBgColor}` : 'text-transparent'} text-base w-[75px] flex items-center justify-center`}>
+                              {showPositionAndScore ? lastGroup.score : ''}
+                            </div>
                           </div>
-                          <div className="px-3 py-2 rounded font-medium text-white text-base flex-1 mx-2 flex items-center justify-center">
-                            {person.isConsensus ? `${person.name} 🤖` : person.name}
-                          </div>
-                          <div className={`px-3 py-2 rounded font-medium ${showPositionAndScore ? `text-black ${scoreBgColor}` : 'text-transparent'} text-base w-[75px] flex items-center justify-center`}>
-                            {showPositionAndScore ? lastGroup.score : ''}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-                
-                return allSections;
-              })()}
+                        );
+                      })}
+                    </div>
+                  );
+                  
+                  return allSections;
+                })()}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* View Mode Toggle & Scoring Help - Separate Section */}
+        {/* Controls: GW selector, view toggle switch, hide leaderboard */}
         <div className="flex justify-center mb-6">
           <div className={`${THEME.colors.darkBlue} rounded-lg shadow-lg p-3 max-w-[450px] w-full`}>
-            <div className="flex justify-between items-center">
-              {/* Gameweek selector */}
-              <div className="flex items-center space-x-2">
-                <span className={`${THEME.colors.white} ${THEME.fontSizes.button} ${THEME.fontStyles.buttonWeight}`}>GW:</span>
-                <select
-                  value={selectedMatchweek}
-                  onChange={e => setSelectedMatchweek(Number(e.target.value))}
-                  className={`rounded-md px-2 py-1 ${THEME.colors.lightBlue} text-white ${THEME.fontSizes.button}`}
-                >
-                  {availableMatchweeks.map(wk => (
-                    <option key={wk} value={wk}>GW{wk}</option>
-                  ))}
-                </select>
+            <div className="flex justify-center items-center space-x-2">
+              {/* GW dropdown */}
+              <select
+                value={selectedMatchweek}
+                onChange={e => setSelectedMatchweek(Number(e.target.value))}
+                className={`${THEME.colors.lightBlue} hover:bg-gray-700 text-white ${THEME.fontStyles.buttonWeight} rounded-md transition-colors ${THEME.fontSizes.button} ${THEME.controls.padding}`}
+              >
+                {availableMatchweeks.map(wk => (
+                  <option key={wk} value={wk}>GW{wk}</option>
+                ))}
+              </select>
+              {/* View Mode Toggle Switch */}
+              <div className={`${THEME.colors.lightBlue} rounded-lg p-1 flex`}
+              >
+                {['expanded','simplified'].map(mode => (
+                  <button
+                    key={mode}
+                    onClick={() => setViewMode(mode)}
+                    className={`px-4 py-2 rounded-md ${THEME.fontStyles.buttonWeight} transition-colors ${THEME.fontSizes.button} ${THEME.controls.padding} ${viewMode===mode? 'bg-blue-600 text-white shadow-sm':'text-gray-300 hover:text-white'}`}
+                  >
+                    {mode==='expanded'? '📊':'📋'}
+                  </button>
+                ))}
               </div>
-              <div className="flex items-center gap-2">
-                 <div className={`${THEME.colors.lightBlue} rounded-lg p-1 flex`}>
-                   <button
-                     onClick={() => setViewMode('expanded')}
-                     className={`px-4 py-2 rounded-md ${THEME.fontStyles.buttonWeight} transition-colors ${THEME.fontSizes.button} ${
-                       viewMode === 'expanded'
-                         ? 'bg-blue-600 text-white shadow-sm'
-                         : 'text-gray-300 hover:text-white'
-                     }`}
-                   >
-                     📊 DETAILED
-                   </button>
-                   <button
-                     onClick={() => setViewMode('simplified')}
-                     className={`px-4 py-2 rounded-md ${THEME.fontStyles.buttonWeight} transition-colors ${THEME.fontSizes.button} ${
-                       viewMode === 'simplified'
-                         ? 'bg-blue-600 text-white shadow-sm'
-                         : 'text-gray-300 hover:text-white'
-                     }`}
-                   >
-                     📋 SIMPLE
-                   </button>
-                 </div>
-                 <button
-                   onClick={() => setShowScoringModal(true)}
-                   className={`${THEME.colors.lightBlue} hover:bg-gray-700 text-gray-300 hover:text-white ${THEME.fontStyles.buttonWeight} py-2 px-3 rounded-md transition-colors ${THEME.fontSizes.button}`}
-                 >
-                   ?
-                 </button>
-              </div>
+              {/* Hide leaderboard */}
+              <button
+                onClick={() => setShowLeaderboard(lb => !lb)}
+                className={`${THEME.colors.lightBlue} hover:bg-gray-700 text-white ${THEME.fontStyles.buttonWeight} rounded-md transition-colors ${THEME.fontSizes.button} ${THEME.controls.padding}`}
+              >{showLeaderboard ? 'HIDE 🏆' : 'SHOW 🏆'}</button>
             </div>
           </div>
         </div>
@@ -446,10 +482,13 @@ function CompetitionDashboard() {
                           style={{ backgroundColor: tintedBgColor }}>
                         {showPosition ? actualPosition : ''}
                       </td>
-                      <td className={`font-semibold sticky z-10 text-xs ${baseRowClass} ${viewMode === 'expanded' ? 'px-2 py-2 left-8' : 'px-1 py-2 left-6'} ${
-                        result.isConsensus ? 'text-blue-400' : 'text-white'
-                      }`}
-                          style={{ backgroundColor: tintedBgColor }}>
+                      <td
+                        onClick={() => handleNameClick(result.name)}
+                        className={`cursor-pointer font-semibold sticky z-10 text-xs ${baseRowClass} ${viewMode === 'expanded' ? 'px-2 py-2 left-8' : 'px-1 py-2 left-6'} ${
+                          result.isConsensus ? 'text-blue-400' : 'text-white'
+                        }`}
+                          style={{ backgroundColor: tintedBgColor }}
+                      >
                         {result.isConsensus ? `${result.name} 🤖` : result.name}
                       </td>
                       <td className={`text-center font-bold sticky z-10 text-xs ${baseRowClass} ${viewMode === 'expanded' ? 'px-2 py-2 left-32' : 'px-1 py-2 left-24'} ${
@@ -460,14 +499,12 @@ function CompetitionDashboard() {
                       </td>
                       {teamsInOrder.map(team => {
                         const teamData = result.teamScores[team.name];
+                        const cellClass = viewMode === 'expanded' ? 'px-1 py-2 text-center' : 'px-0 py-2 text-center';
                         return (
-                          <td key={team.name} className={viewMode === 'expanded' ? 'px-1 py-2 text-center' : 'px-0 py-2 text-center'}>
+                          <td key={team.name} className={cellClass} onClick={(e) => handleCellClick(result.name, team.name, e)}>
                             {teamData ? (
                               viewMode === 'expanded' ? (
-                                <div className={`
-                                  px-1 py-2 rounded text-xs font-medium
-                                  ${getCellStyle(teamData.score)}
-                                `}>
+                                <div className={`px-1 py-2 rounded text-xs font-medium ${getCellStyle(teamData.score)}`}>
                                   <div className="text-sm font-bold mb-1">
                                     {formatCellContent(teamData, team.name).score}
                                   </div>
@@ -476,10 +513,7 @@ function CompetitionDashboard() {
                                   </div>
                                 </div>
                               ) : (
-                                <div className={`
-                                  px-1 py-1 mx-0.5 my-0.5 rounded text-xs font-bold
-                                  ${getCellStyle(teamData.score)}
-                                `}>
+                                <div className={`px-1 py-1 mx-0.5 my-0.5 rounded text-xs font-bold ${getCellStyle(teamData.score)}`}>
                                   {formatCellContent(teamData, team.name).score}
                                 </div>
                               )
@@ -519,158 +553,152 @@ function CompetitionDashboard() {
                 </div>
               </div>
               
-              {/* Paired rows */}
-              <div className="space-y-2">
-                {(() => {
-                  const overachievers = groupData.overachievers || [];
-                  const underachievers = groupData.underachievers || [];
-                  const maxRows = Math.max(overachievers.length, underachievers.length);
-                  
-                  return Array.from({ length: maxRows }, (_, index) => {
-                    const overachiever = overachievers[index];
-                    const underachiever = underachievers[index];
-                    
-                    return (
-                      <div key={index} className="flex justify-center gap-4 min-h-[75px]">
-                        {/* Overachiever Card */}
-                        <div className="max-w-[300px] flex-1">
-                          {overachiever ? (
-                            <div className="bg-gray-900 rounded px-2 py-3 text-center border border-gray-600 h-full flex flex-col justify-center min-h-[75px]">
-                              <div className="text-xl font-bold text-white mb-1">
-                                {getTeamAbbreviation(overachiever.team)} <span className="text-green-400">(+{Math.abs(overachiever.delta)})</span>
-                              </div>
-                              <div className="text-xs text-gray-400 leading-tight">
-                                Group Predicted: {groupData.groupPredictionRanks[overachiever.team]}, Current: {overachiever.currentPosition}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="min-h-[75px]"></div>
-                          )}
-                        </div>
-                        
-                        {/* Underachiever Card */}
-                        <div className="max-w-[300px] flex-1">
-                          {underachiever ? (
-                            <div className="bg-gray-900 rounded px-2 py-3 text-center border border-gray-600 h-full flex flex-col justify-center min-h-[75px]">
-                              <div className="text-xl font-bold text-white mb-1">
-                                {getTeamAbbreviation(underachiever.team)} <span className="text-red-400">({underachiever.delta})</span>
-                              </div>
-                              <div className="text-xs text-gray-400 leading-tight">
-                                Group Predicted: {groupData.groupPredictionRanks[underachiever.team]}, Current: {underachiever.currentPosition}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="min-h-[75px]"></div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  });
-                })()}
-              </div>
-            </div>
-          </div>
-
-          {/* Main Table */}
-          <div className="overflow-x-auto max-w-[675px] mx-auto">
-            <table className="w-full">
-              <thead className={`${THEME.colors.lightBlue}`}>
-                <tr>
-                  <th className={`px-3 py-2 text-left ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>Pos</th>
-                  <th className={`px-3 py-2 text-left ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>Team</th>
-                  <th className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>Group Prediction</th>
-                  <th className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>Range (μ ± 1σ)</th>
-                  <th className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>Group Average</th>
-                  <th className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>Median</th>
-                </tr>
-              </thead>
-              <tbody>
-                {teamsInOrder.map((team, index) => {
-                  const stats = groupData.statistics[team.name] || {};
-                  const groupPredictionRank = groupData.groupPredictionRanks && groupData.groupPredictionRanks[team.name] || null;
-                  
-                  // Calculate delta and color coding
-                  const currentPos = team.position;
-                  const groupPos = groupPredictionRank;
-                  const delta = groupPos ? Math.abs(groupPos - currentPos) : null;
-                  
-                  // Check if current position is within the range
-                  const rangeHigh = stats.rangeHigh; // This should be the better position (lower number)
-                  const rangeLow = stats.rangeLow;   // This should be the worse position (higher number)
-                  const isWithinRange = (rangeHigh !== null && rangeLow !== null) ? 
-                    (currentPos >= rangeHigh && currentPos <= rangeLow) : false;
-                  
-                  // New color coding logic
-                  const getAccuracyColor = () => {
-                    if (rangeHigh === null || rangeLow === null) return 'text-gray-500';
-                    
-                    if (isWithinRange) return 'text-white'; // In range = WHITE
-                    if (currentPos < rangeHigh) return 'text-green-400'; // Below range (better) = GREEN
-                    if (currentPos > rangeLow) return 'text-red-400'; // Above range (worse) = RED
-                    return 'text-gray-500';
-                  };
-                  
-                  // Check if team is in over/underachievers
-                  const overachiever = groupData.overachievers && groupData.overachievers.find(t => t.team === team.name);
-                  const underachiever = groupData.underachievers && groupData.underachievers.find(t => t.team === team.name);
-                  
-                  // Helper function for ordinal numbers
-                  const getOrdinal = (num) => {
-                    const j = num % 10;
-                    const k = num % 100;
-                    if (j === 1 && k !== 11) return num + 'st';
-                    if (j === 2 && k !== 12) return num + 'nd';
-                    if (j === 3 && k !== 13) return num + 'rd';
-                    return num + 'th';
-                  };
-                  
-                  // Format range display
-                  const rangeDisplay = (stats.rangeHigh !== null && stats.rangeLow !== null) 
-                    ? `${stats.rangeHigh}-${stats.rangeLow}`
-                    : 'N/A';
-                  
+              {/* Paired Over/Under achiever rows */}
+              {(() => {
+                const overachievers = groupData.overachievers || [];
+                const underachievers = groupData.underachievers || [];
+                const maxRows = Math.max(overachievers.length, underachievers.length);
+                // Map directly without IIFE wrapper
+                return [...Array(maxRows).keys()].map(index => {
+                  const overachiever = overachievers[index];
+                  const underachiever = underachievers[index];
                   return (
-                    <tr key={team.name} className={index % 2 === 0 ? `${THEME.colors.lightBlue}` : `${THEME.colors.darkBlue}`}>
-                      <td className={`px-3 py-2 ${THEME.fontSizes.dataTable} ${THEME.fontStyles.titleWeight} ${THEME.colors.white}`}>{team.position}</td>
-                      <td className={`px-3 py-2 ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>
-                        {getTeamAbbreviation(team.name)}
-                        {overachiever && (
-                          <span className={`${THEME.colors.green} ml-1`}>({Math.abs(overachiever.delta)})</span>
-                        )}
-                        {underachiever && (
-                          <span className={`${THEME.colors.red} ml-1`}>({Math.abs(underachiever.delta)})</span>
-                        )}
-                      </td>
-                      <td className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable}`}>
-                        {groupPredictionRank ? (
-                          <div>
-                            <div className={`${THEME.fontStyles.buttonWeight} ${getAccuracyColor()}`}>
-                              {getOrdinal(groupPredictionRank)}
+                    <div key={index} className="flex justify-center gap-4 min-h-[75px]">
+                      {/* Overachiever Card */}
+                      <div className="max-w-[300px] flex-1">
+                        {overachiever ? (
+                          <div className="bg-gray-900 rounded px-2 py-3 text-center border border-gray-600 h-full flex flex-col justify-center min-h-[75px]">
+                            <div className="text-xl font-bold text-white mb-1">
+                              {getTeamAbbreviation(overachiever.team)} <span className="text-green-400">(+{Math.abs(overachiever.delta)})</span>
                             </div>
-                            <div className={`${THEME.fontSizes.dataTable} text-gray-500 italic`}>
-                              (In {getOrdinal(currentPos)}, <strong>Δ{delta}</strong>)
+                            <div className="text-xs text-gray-400 leading-tight">
+                              Group Predicted: {groupData.groupPredictionRanks[overachiever.team]}, Current: {overachiever.currentPosition}
                             </div>
                           </div>
-                        ) : (
-                          <span className="text-gray-500">N/A</span>
-                        )}
-                      </td>
-                      <td className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable} text-gray-300`}>{rangeDisplay}</td>
-                      <td className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable} text-gray-300`}>{stats.mean || 'N/A'}</td>
-                      <td className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable} text-gray-300`}>{stats.median || 'N/A'}</td>
-                    </tr>
+                        ) : <div className="min-h-[75px]"></div>}
+                      </div>
+                      {/* Underachiever Card */}
+                      <div className="max-w-[300px] flex-1">
+                        {underachiever ? (
+                          <div className="bg-gray-900 rounded px-2 py-3 text-center border border-gray-600 h-full flex flex-col justify-center min-h-[75px]">
+                            <div className="text-xl font-bold text-white mb-1">
+                              {getTeamAbbreviation(underachiever.team)} <span className="text-red-400">({underachiever.delta})</span>
+                            </div>
+                            <div className="text-xs text-gray-400 leading-tight">
+                              Group Predicted: {groupData.groupPredictionRanks[underachiever.team]}, Current: {underachiever.currentPosition}
+                            </div>
+                          </div>
+                        ) : <div className="min-h-[75px]"></div>}
+                      </div>
+                    </div>
                   );
-                })}
-              </tbody>
-            </table>
+                });
+              })()}
+            </div>
           </div>
           
-          <div className="p-4 bg-gray-800 text-xs text-gray-400">
-            <p><strong>Group Prediction:</strong> Shows group consensus rank with current position and accuracy delta</p>
-            <p><strong>Color coding:</strong> <span className="text-green-400">Green (better than range)</span> • <span className="text-white font-bold">White (within range)</span> • <span className="text-red-400">Red (worse than range)</span></p>
-            <p><strong>Team names:</strong> <span className="text-green-400">(+X) Overachievers</span> • <span className="text-red-400">(-X) Underachievers</span> based on group vs current position</p>
-            <p><strong>Leaderboard colors:</strong> <span className="bg-green-500 text-white px-1 rounded">Perfect (0)</span> • <span className="bg-green-200 text-green-800 px-1 rounded">Excellent (±1)</span> • <span className="bg-yellow-100 text-yellow-700 px-1 rounded">Good (±2-3)</span> • <span className="bg-yellow-200 text-yellow-800 px-1 rounded">Fair (4)</span> • <span className="bg-orange-200 text-orange-800 px-1 rounded">Poor (5-6)</span> • <span className="bg-red-200 text-red-800 px-1 rounded">Terrible (7+)</span></p>
-            <p><strong>Range:</strong> Mean ± 1 standard deviation of group predictions</p>
+          {/* Detailed Group Statistics Table - Now with improved styling and color coding */}
+          <div className="p-4 bg-gray-800">
+            <div className="max-w-2xl mx-auto">
+              <table className="w-full">
+                <thead className={`${THEME.colors.lightBlue}`}>
+                  <tr>
+                    <th className={`px-3 py-2 text-left ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>Pos</th>
+                    <th className={`px-3 py-2 text-left ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>Team</th>
+                    <th className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>Group Prediction</th>
+                    <th className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>Range (μ ± 1σ)</th>
+                    <th className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>Group Average</th>
+                    <th className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>Median</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {teamsInOrder.map((team, index) => {
+                    const stats = groupData.statistics[team.name] || {};
+                    const groupPredictionRank = groupData.groupPredictionRanks && groupData.groupPredictionRanks[team.name] || null;
+                    
+                    // Calculate delta and color coding
+                    const currentPos = team.position;
+                    const groupPos = groupPredictionRank;
+                    const delta = groupPos ? Math.abs(groupPos - currentPos) : null;
+                    
+                    // Check if current position is within the range
+                    const rangeHigh = stats.rangeHigh; // This should be the better position (lower number)
+                    const rangeLow = stats.rangeLow;   // This should be the worse position (higher number)
+                    const isWithinRange = (rangeHigh !== null && rangeLow !== null) ? 
+                      (currentPos >= rangeHigh && currentPos <= rangeLow) : false;
+                    
+                    // New color coding logic
+                    const getAccuracyColor = () => {
+                      if (rangeHigh === null || rangeLow === null) return 'text-gray-500';
+                      
+                      if (isWithinRange) return 'text-white'; // In range = WHITE
+                      if (currentPos < rangeHigh) return 'text-green-400'; // Below range (better) = GREEN
+                      if (currentPos > rangeLow) return 'text-red-400'; // Above range (worse) = RED
+                      return 'text-gray-500';
+                    };
+                    
+                    // Check if team is in over/underachievers
+                    const overachiever = groupData.overachievers && groupData.overachievers.find(t => t.team === team.name);
+                    const underachiever = groupData.underachievers && groupData.underachievers.find(t => t.team === team.name);
+                    
+                    // Helper function for ordinal numbers
+                    const getOrdinal = (num) => {
+                      const j = num % 10;
+                      const k = num % 100;
+                      if (j === 1 && k !== 11) return num + 'st';
+                      if (j === 2 && k !== 12) return num + 'nd';
+                      if (j === 3 && k !== 13) return num + 'rd';
+                      return num + 'th';
+                    };
+                    
+                    // Format range display
+                    const rangeDisplay = (stats.rangeHigh !== null && stats.rangeLow !== null) 
+                      ? `${stats.rangeHigh}-${stats.rangeLow}`
+                      : 'N/A';
+                    
+                    return (
+                      <tr key={team.name} className={index % 2 === 0 ? `${THEME.colors.lightBlue}` : `${THEME.colors.darkBlue}`}>
+                        <td className={`px-3 py-2 ${THEME.fontSizes.dataTable} ${THEME.fontStyles.titleWeight} ${THEME.colors.white}`}>{team.position}</td>
+                        <td className={`px-3 py-2 ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>
+                          {getTeamAbbreviation(team.name)}
+                          {overachiever && (
+                            <span className={`${THEME.colors.green} ml-1`}>({Math.abs(overachiever.delta)})</span>
+                          )}
+                          {underachiever && (
+                            <span className={`${THEME.colors.red} ml-1`}>({Math.abs(underachiever.delta)})</span>
+                          )}
+                        </td>
+                        <td className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable}`}>
+                          {groupPredictionRank ? (
+                            <div>
+                              <div className={`${THEME.fontStyles.buttonWeight} ${getAccuracyColor()}`}>
+                                {`${groupPredictionRank}${getOrdinalSuffix(groupPredictionRank)}`}
+                            </div>
+                            <div className={`${THEME.fontSizes.dataTable} text-gray-500 italic`}>
+                              (In {`${currentPos}${getOrdinalSuffix(currentPos)}`}, <strong>Δ{delta}</strong>)
+                            </div>
+                          </div>
+                          ) : (
+                            <span className="text-gray-500">N/A</span>
+                          )}
+                        </td>
+                        <td className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable} text-gray-300`}>{rangeDisplay}</td>
+                        <td className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable} text-gray-300`}>{stats.mean || 'N/A'}</td>
+                        <td className={`px-3 py-2 text-center ${THEME.fontSizes.dataTable} text-gray-300`}>{stats.median || 'N/A'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="p-4 bg-gray-800 text-xs text-gray-400">
+              <p><strong>Group Prediction:</strong> Shows group consensus rank with current position and accuracy delta</p>
+              <p><strong>Color coding:</strong> <span className="text-green-400">Green (better than range)</span> • <span className="text-white font-bold">White (within range)</span> • <span className="text-red-400">Red (worse than range)</span></p>
+              <p><strong>Team names:</strong> <span className="text-green-400">(+X) Overachievers</span> • <span className="text-red-400">(-X) Underachievers</span> based on group vs current position</p>
+              <p><strong>Leaderboard colors:</strong> <span className="bg-green-500 text-white px-1 rounded">Perfect (0)</span> • <span className="bg-green-200 text-green-800 px-1 rounded">Excellent (±1)</span> • <span className="bg-yellow-100 text-yellow-700 px-1 rounded">Good (±2-3)</span> • <span className="bg-yellow-200 text-yellow-800 px-1 rounded">Fair (4)</span> • <span className="bg-orange-200 text-orange-800 px-1 rounded">Poor (5-6)</span> • <span className="bg-red-200 text-red-800 px-1 rounded">Terrible (7+)</span></p>
+              <p><strong>Range:</strong> Mean ± 1 standard deviation of group predictions</p>
+            </div>
           </div>
         </div>
 
@@ -694,8 +722,64 @@ function CompetitionDashboard() {
             </div>
           </div>
         )}
+
+        {/* User Predictions Modal */}
+        {showUserModal && activeUser && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-lg shadow-xl w-full max-w-md p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-white">
+                  {activeUser}'s Predictions • GW{currentMatchweek}
+                </h3>
+                <div className="text-xl font-bold text-white">
+                  {competitionResults.find(r => r.name === activeUser)?.totalScore}
+                </div>
+              </div>
+               <div className="overflow-y-auto max-h-[60vh]">
+                <table className="table-auto mx-auto text-sm text-white">
+                  <thead>
+                    <tr>
+                      <th className="p-2 text-left font-bold">#</th>
+                      <th className="p-2 text-left font-bold">Team</th>
+                      <th className="p-2 text-center font-bold">Score</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {realPredictions.find(p => p.name === activeUser).rankings.map((teamName, i) => {
+                    const userResult = competitionResults.find(r => r.name === activeUser);
+                    const data = userResult.teamScores[teamName] || {};
+                    const score = data.score ?? 0;
+                    const delta = data.difference ?? 0;
+                    const displayDelta = delta > 0 ? `+${delta}` : `${delta}`;
+                    const actualPos = data.actualPosition;
+                    return (
+                      <tr key={teamName} className={i % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700'}>
+                        <td className="p-2 font-bold text-base">{i + 1}</td>
+                        <td className="p-2 font-bold text-base">
+                          {teamName} <span className="italic text-sm">({actualPos}{getOrdinalSuffix(actualPos)})</span>
+                        </td>
+                        <td className="p-2 text-center">
+                          <div className={`w-[35px] mx-auto rounded text-base font-bold ${getCellStyle(score)}`}>{displayDelta}</div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  </tbody>
+                </table>
+              </div>
+              <div className="text-right mt-4">
+                <button
+                  onClick={() => setShowUserModal(false)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors"
+                >Close</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       
+      {/* Render cell popup if any */}
+      {cellPopupInfo && <CellPopup info={cellPopupInfo} onClose={() => setCellPopupInfo(null)} />}
       {/* CSS Custom Property for Controls Width */}
       <style>{`
         :global(:root) {
