@@ -25,10 +25,12 @@ function CompetitionDashboard() {
 
   // Helper function to get cell styling based on score
   const getCellStyle = (score) => {
-    if (score === 0) return 'bg-green-100 text-green-800 font-bold'; // Perfect prediction
-    if (score <= 2) return 'bg-yellow-100 text-yellow-800'; // Close
-    if (score <= 5) return 'bg-orange-100 text-orange-800'; // Okay
-    return 'bg-red-100 text-red-800'; // Way off
+    if (score === 0) return 'bg-green-500 text-white font-bold'; // Perfect prediction - medium green
+    if (score <= 1) return 'bg-green-200 text-green-800 font-medium'; // ±1 - light green
+    if (score <= 3) return 'bg-yellow-100 text-yellow-700'; // ±2-3 - really light yellow
+    if (score === 4) return 'bg-yellow-200 text-yellow-800'; // 4 - yellow
+    if (score <= 6) return 'bg-orange-200 text-orange-800'; // 5-6 - orange
+    return 'bg-red-200 text-red-800'; // 7+ - red
   };
 
   // Helper function to format the cell content
@@ -141,11 +143,11 @@ function CompetitionDashboard() {
         <div className="bg-white rounded-lg shadow-lg p-4 mb-6">
           <div className="flex items-center justify-between">
             {/* Left side - Group and Matchweek info */}
-            <div className="text-left text-sm text-gray-600">
-              <div className="mb-1">
-                <span className="font-medium">Group:</span> {selectedGroup === 'all' ? 'All Entries' : selectedGroup === 'LIV' ? 'Klopptoberfest' : 'Fantrax FPL'}
+            <div className="text-left text-gray-600">
+              <div className="mb-1 text-sm">
+                {selectedGroup === 'all' ? 'All Entries' : selectedGroup === 'LIV' ? 'Klopptoberfest' : 'Fantrax FPL'}
               </div>
-              <div>MW4</div>
+              <div className="text-lg font-medium">MW4</div>
             </div>
             
             {/* Center - Top performers */}
@@ -179,14 +181,14 @@ function CompetitionDashboard() {
                 
                 const topElements = topPositions.slice(0, 3).map((positionGroup, groupIndex) => (
                   <div key={groupIndex} className="text-center">
-                    <span className="text-lg">
+                    <span className="text-2xl">
                       {positionGroup.position === 1 ? '🥇' : positionGroup.position === 2 ? '🥈' : '🥉'}
                     </span>
                     <div className="font-bold text-xs mt-1">
                       {positionGroup.people.map(p => p.isConsensus ? `${p.name} 🤖` : p.name).join(', ')}
                     </div>
-                    <div className="text-xs text-gray-500">
-                      Score: {positionGroup.score}
+                    <div className="text-sm font-medium text-gray-700 mt-1">
+                      {positionGroup.score}
                     </div>
                   </div>
                 ));
@@ -195,12 +197,12 @@ function CompetitionDashboard() {
                 const lastResult = enhancedResults[enhancedResults.length - 1];
                 const lastPlaceElement = (
                   <div key="last" className="text-center">
-                    <span className="text-lg">💩</span>
+                    <span className="text-2xl">💩</span>
                     <div className="font-bold text-xs mt-1">
                       {lastResult.isConsensus ? `${lastResult.name} 🤖` : lastResult.name}
                     </div>
-                    <div className="text-xs text-gray-500">
-                      Score: {lastResult.totalScore}
+                    <div className="text-sm font-medium text-gray-700 mt-1">
+                      {lastResult.totalScore}
                     </div>
                   </div>
                 );
@@ -288,7 +290,7 @@ function CompetitionDashboard() {
                               </div>
                             ) : (
                               <div className={`
-                                px-1 py-1 rounded text-xs font-bold
+                                px-1 py-1 mx-0.5 my-0.5 rounded text-xs font-bold
                                 ${getCellStyle(teamData.score)}
                               `}>
                                 {formatCellContent(teamData, team.name).score}
@@ -318,17 +320,17 @@ function CompetitionDashboard() {
 
           {/* Fun Metrics - Overachievers vs Underachievers */}
           <div className="p-4 bg-gray-50 border-b border-gray-200">
-            <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
               {/* Overachievers */}
               <div className="text-center">
                 <h4 className="text-sm font-bold text-green-600 mb-3">Overachievers</h4>
                 <div className="space-y-2">
                   {groupData.overachievers && groupData.overachievers.map((team, index) => (
-                    <div key={team.team} className="bg-white rounded px-3 py-2 text-xs">
-                      <div className="font-medium text-gray-800 mb-1">
+                    <div key={team.team} className="bg-white rounded px-2 py-3 text-center">
+                      <div className="text-xl font-bold text-gray-800 mb-1">
                         {getTeamAbbreviation(team.team)} <span className="text-green-600">(+{Math.abs(team.delta)})</span>
                       </div>
-                      <div className="text-gray-600">
+                      <div className="text-xs text-gray-600">
                         Group Predicted: {groupData.groupPredictionRanks[team.team]}, Current: {team.currentPosition}
                       </div>
                     </div>
@@ -341,11 +343,11 @@ function CompetitionDashboard() {
                 <h4 className="text-sm font-bold text-red-600 mb-3">Underachievers</h4>
                 <div className="space-y-2">
                   {groupData.underachievers && groupData.underachievers.map((team, index) => (
-                    <div key={team.team} className="bg-white rounded px-3 py-2 text-xs">
-                      <div className="font-medium text-gray-800 mb-1">
+                    <div key={team.team} className="bg-white rounded px-2 py-3 text-center">
+                      <div className="text-xl font-bold text-gray-800 mb-1">
                         {getTeamAbbreviation(team.team)} <span className="text-red-600">({team.delta})</span>
                       </div>
-                      <div className="text-gray-600">
+                      <div className="text-xs text-gray-600">
                         Group Predicted: {groupData.groupPredictionRanks[team.team]}, Current: {team.currentPosition}
                       </div>
                     </div>
@@ -453,13 +455,14 @@ function CompetitionDashboard() {
             <p><strong>Group Prediction:</strong> Shows group consensus rank with current position and accuracy delta</p>
             <p><strong>Color coding:</strong> <span className="text-green-600">Green (better than range)</span> • <span className="text-black font-bold">Black (within range)</span> • <span className="text-red-600">Red (worse than range)</span></p>
             <p><strong>Team names:</strong> <span className="text-green-600">(+X) Overachievers</span> • <span className="text-red-600">(-X) Underachievers</span> based on group vs current position</p>
+            <p><strong>Leaderboard colors:</strong> <span className="bg-green-500 text-white px-1 rounded">Perfect (0)</span> • <span className="bg-green-200 text-green-800 px-1 rounded">Excellent (±1)</span> • <span className="bg-yellow-100 text-yellow-700 px-1 rounded">Good (±2-3)</span> • <span className="bg-yellow-200 text-yellow-800 px-1 rounded">Fair (4)</span> • <span className="bg-orange-200 text-orange-800 px-1 rounded">Poor (5-6)</span> • <span className="bg-red-200 text-red-800 px-1 rounded">Terrible (7+)</span></p>
             <p><strong>Range:</strong> Mean ± 1 standard deviation of group predictions</p>
           </div>
         </div>
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
-          <p>Through MW4 - Data updated after each Premier League matchweek.</p>
+          <p>Powered by Premonition • Data updated after each Premier League matchweek</p>
         </div>
 
         {/* Scoring Modal */}

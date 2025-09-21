@@ -175,9 +175,9 @@ export const realPredictions = [
 
 // Available groups for filtering
 export const availableGroups = [
-  { id: "all", name: "All Entries", count: 24 },
-  { id: "LIV", name: "Klopptoberfest Only", count: 10 },
-  { id: "TOG", name: "Fantrax FPL Only", count: 14 },
+  { id: "all", name: "All", count: 24 },
+  { id: "LIV", name: "Klopptoberfest", count: 11 },
+  { id: "TOG", name: "Fantrax FPL", count: 13 },
   { id: "FPL", name: "FPL Group", count: 2 }
 ];
 
