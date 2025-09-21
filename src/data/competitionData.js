@@ -1,29 +1,20 @@
 // src/data/competitionData.js
 // Real competition data and scoring for Premonition dashboard
-
+// JAM NOTES - This needs to be an indexcable data file capturing standings for each gameweek, not just current.
+// JAM NOTES - Also, we can condense this by doing team abbreviations instead of full names everywhere.
+// JAM NOTES - We need to condense this, shorten responses to team IDs or abbreviations or something. plus remove the comments below them.
 // Current Premier League table after MW4
-export const currentStandings = {
-  1: "Liverpool",
-  2: "Arsenal", 
-  3: "Tottenham Hotspur",
-  4: "AFC Bournemouth",
-  5: "Chelsea",
-  6: "Everton",
-  7: "Sunderland", 
-  8: "Manchester City",
-  9: "Crystal Palace",
-  10: "Newcastle United",
-  11: "Fulham",
-  12: "Brentford",
-  13: "Brighton & Hove Albion",
-  14: "Manchester United",
-  15: "Nottingham Forest",
-  16: "Leeds United",
-  17: "Burnley",
-  18: "West Ham United",
-  19: "Aston Villa",
-  20: "Wolverhampton Wanderers"
-};
+import standingsByGameweek from './standingsByGameweek.json';
+
+const weekNumbers = Object.keys(standingsByGameweek)
+  .filter(k => /^\d+$/.test(k))
+  .map(n => parseInt(n, 10));
+const latestWeek = Math.max(...weekNumbers);
+
+export const currentStandings = standingsByGameweek[latestWeek];
+export const latestMatchweek = latestWeek;
+// Available matchweeks for selection
+export const availableMatchweeks = weekNumbers.sort((a, b) => a - b);
 
 // Real predictions from your 24 friends (exact data from CSV + manual additions)
 export const realPredictions = [
@@ -183,50 +174,49 @@ export const availableGroups = [
 
 // Function to calculate competition scores (with optional group filtering)
 export function calculateCompetitionScores(selectedGroup = "all") {
+  return calculateCompetitionScoresForWeek(latestWeek, selectedGroup);
+}
+
+/**
+ * Calculate competition scores for any given gameweek.
+ * @param {number} week - The gameweek number to score (defaults to latest).
+ * @param {string} selectedGroup - Group filter (defaults to 'all').
+ */
+export function calculateCompetitionScoresForWeek(week = latestWeek, selectedGroup = 'all') {
+  const standings = standingsByGameweek[week];
+
   // Create team position lookup
   const teamCurrentPosition = {};
-  Object.entries(currentStandings).forEach(([pos, team]) => {
-    teamCurrentPosition[team] = parseInt(pos);
+  Object.entries(standings).forEach(([pos, team]) => {
+    teamCurrentPosition[team] = parseInt(pos, 10);
   });
 
-  // Filter predictions by group (supports multiple groups per person)
-  const filteredPredictions = selectedGroup === "all" 
-    ? realPredictions 
-    : realPredictions.filter(prediction => {
-        // Check if user is in the selected group
-        return prediction.groups.includes(selectedGroup);
-      });
+  // Filter predictions by group
+  const filteredPredictions = selectedGroup === 'all'
+    ? realPredictions
+    : realPredictions.filter(prediction => prediction.groups.includes(selectedGroup));
 
-  // Calculate scores for each predictor
+  // Calculate scores
   const results = filteredPredictions.map(prediction => {
     let totalScore = 0;
     const teamScores = {};
-
     prediction.rankings.forEach((teamName, index) => {
       const predictedPosition = index + 1;
       const actualPosition = teamCurrentPosition[teamName];
-      
       if (actualPosition) {
         const score = Math.abs(predictedPosition - actualPosition);
         totalScore += score;
         teamScores[teamName] = {
-          score: score,
-          predictedPosition: predictedPosition,
-          actualPosition: actualPosition,
+          score,
+          predictedPosition,
+          actualPosition,
           difference: predictedPosition - actualPosition
         };
       }
     });
-
-    return {
-      name: prediction.name,
-      groups: prediction.groups,
-      totalScore: totalScore,
-      teamScores: teamScores
-    };
+    return { name: prediction.name, groups: prediction.groups, totalScore, teamScores };
   });
 
-  // Sort by total score (lowest = best, like golf)
   return results.sort((a, b) => a.totalScore - b.totalScore);
 }
 

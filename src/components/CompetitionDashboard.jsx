@@ -1,16 +1,19 @@
 // src/components/CompetitionDashboard.jsx
 import { useState } from 'react'
-import { calculateCompetitionScores, getTeamsInTableOrder, currentStandings } from '../data/competitionData'
+import { calculateCompetitionScores, calculateCompetitionScoresForWeek, getTeamsInTableOrder, currentStandings, latestMatchweek, availableMatchweeks } from '../data/competitionData'
 import { availableGroups } from '../data/competitionData'
-import { getGroupData, getTeamAbbreviation } from '../data/groupDataProcessor';
+import { getGroupData } from '../data/groupDataProcessor';
+import { getTeamAbbreviation } from '../data/teamInfo';
 
 function CompetitionDashboard() {
   const [selectedGroup, setSelectedGroup] = useState('all');
   const [viewMode, setViewMode] = useState('simplified'); // 'expanded' or 'simplified'
   const [showScoringModal, setShowScoringModal] = useState(false);
   
-  // Matchweek variable for easy updates
-  const currentMatchweek = 4;
+  // Matchweek (auto from data)
+  // Matchweek selector (defaults to latest)
+  const [selectedMatchweek, setSelectedMatchweek] = useState(latestMatchweek);
+  const currentMatchweek = selectedMatchweek;
   
   // Global formatting variables
   const THEME = {
@@ -43,35 +46,6 @@ function CompetitionDashboard() {
     }
   };
   
-  // Global team abbreviations dictionary
-  const TEAM_ABBREVIATIONS = {
-    'Arsenal': 'ARS',
-    'Aston Villa': 'AVL', 
-    'AFC Bournemouth': 'BOU',
-    'Brentford': 'BRE',
-    'Brighton & Hove Albion': 'BRI',
-    'Burnley': 'BUR',
-    'Chelsea': 'CHE',
-    'Crystal Palace': 'CRY',
-    'Everton': 'EVE',
-    'Fulham': 'FUL',
-    'Leeds United': 'LEE',
-    'Liverpool': 'LIV',
-    'Manchester City': 'MCI',
-    'Manchester United': 'MUN',
-    'Newcastle United': 'NEW',
-    'Nottingham Forest': 'NFO',
-    'Sunderland': 'SUN',
-    'Tottenham Hotspur': 'TOT',
-    'West Ham United': 'WHU',
-    'Wolverhampton Wanderers': 'WOL'
-  };
-  
-  // Helper function to get team abbreviation
-  const getTeamAbbr = (teamName) => {
-    return TEAM_ABBREVIATIONS[teamName] || teamName.substring(0, 3).toUpperCase();
-  };
-  
   // Helper function to get row tinting based on position
   const getRowTint = (position, totalRows, isEvenRow) => {
     const baseGray = isEvenRow ? '#111827' : '#000000'; // gray-900 or black
@@ -93,8 +67,22 @@ function CompetitionDashboard() {
   // Get processed group data
   const groupData = getGroupData(selectedGroup, currentStandings);
   
-  // Get original competition results
-  const competitionResults = calculateCompetitionScores(selectedGroup);
+  // Get competition results for current and previous weeks
+  const competitionResults = calculateCompetitionScoresForWeek(currentMatchweek, selectedGroup);
+  const prevCompetitionResults =
+    currentMatchweek > 1
+      ? calculateCompetitionScoresForWeek(currentMatchweek - 1, selectedGroup)
+      : [];
+  // Build lookup maps for previous scores and positions
+  const prevScoreMap = Object.fromEntries(
+    prevCompetitionResults.map((r) => [r.name, r.totalScore])
+  );
+  const prevPosMap = Object.fromEntries(
+    prevCompetitionResults.map((r, i) => [r.name, i + 1])
+  );
+  const currPosMap = Object.fromEntries(
+    competitionResults.map((r, i) => [r.name, i + 1])
+  );
   const teamsInOrder = getTeamsInTableOrder();
 
   // Filter out FPL for now as requested
@@ -271,10 +259,9 @@ function CompetitionDashboard() {
                     allSections.push(
                       <div key={`winners-${groupIndex}`} className={`border-2 ${borderColor} rounded-lg p-2 space-y-1 bg-gray-800`}>
                         {group.people.map((person, personIndex) => {
-                          // Determine which row should show position and score
+                          // Determine when to show score cell
                           const displayIndex = group.people.length % 2 === 0 ? 0 : Math.floor(group.people.length / 2);
                           const showPositionAndScore = personIndex === displayIndex;
-                          
                           return (
                             <div key={personIndex} className="flex items-center h-12">
                               <div className="px-3 py-2 rounded font-medium text-white text-base w-[100px] flex items-center justify-center">
@@ -339,35 +326,50 @@ function CompetitionDashboard() {
         {/* View Mode Toggle & Scoring Help - Separate Section */}
         <div className="flex justify-center mb-6">
           <div className={`${THEME.colors.darkBlue} rounded-lg shadow-lg p-3 max-w-[450px] w-full`}>
-            <div className="flex justify-center gap-2">
-              <div className={`${THEME.colors.lightBlue} rounded-lg p-1 flex`}>
-                <button
-                  onClick={() => setViewMode('expanded')}
-                  className={`px-4 py-2 rounded-md ${THEME.fontStyles.buttonWeight} transition-colors ${THEME.fontSizes.button} ${
-                    viewMode === 'expanded'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-gray-300 hover:text-white'
-                  }`}
+            <div className="flex justify-between items-center">
+              {/* Gameweek selector */}
+              <div className="flex items-center space-x-2">
+                <span className={`${THEME.colors.white} ${THEME.fontSizes.button} ${THEME.fontStyles.buttonWeight}`}>GW:</span>
+                <select
+                  value={selectedMatchweek}
+                  onChange={e => setSelectedMatchweek(Number(e.target.value))}
+                  className={`rounded-md px-2 py-1 ${THEME.colors.lightBlue} text-white ${THEME.fontSizes.button}`}
                 >
-                  📊 DETAILED
-                </button>
-                <button
-                  onClick={() => setViewMode('simplified')}
-                  className={`px-4 py-2 rounded-md ${THEME.fontStyles.buttonWeight} transition-colors ${THEME.fontSizes.button} ${
-                    viewMode === 'simplified'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-gray-300 hover:text-white'
-                  }`}
-                >
-                  📋 SIMPLE
-                </button>
+                  {availableMatchweeks.map(wk => (
+                    <option key={wk} value={wk}>GW{wk}</option>
+                  ))}
+                </select>
               </div>
-              <button
-                onClick={() => setShowScoringModal(true)}
-                className={`${THEME.colors.lightBlue} hover:bg-gray-700 text-gray-300 hover:text-white ${THEME.fontStyles.buttonWeight} py-2 px-3 rounded-md transition-colors ${THEME.fontSizes.button}`}
-              >
-                ?
-              </button>
+              <div className="flex items-center gap-2">
+                 <div className={`${THEME.colors.lightBlue} rounded-lg p-1 flex`}>
+                   <button
+                     onClick={() => setViewMode('expanded')}
+                     className={`px-4 py-2 rounded-md ${THEME.fontStyles.buttonWeight} transition-colors ${THEME.fontSizes.button} ${
+                       viewMode === 'expanded'
+                         ? 'bg-blue-600 text-white shadow-sm'
+                         : 'text-gray-300 hover:text-white'
+                     }`}
+                   >
+                     📊 DETAILED
+                   </button>
+                   <button
+                     onClick={() => setViewMode('simplified')}
+                     className={`px-4 py-2 rounded-md ${THEME.fontStyles.buttonWeight} transition-colors ${THEME.fontSizes.button} ${
+                       viewMode === 'simplified'
+                         ? 'bg-blue-600 text-white shadow-sm'
+                         : 'text-gray-300 hover:text-white'
+                     }`}
+                   >
+                     📋 SIMPLE
+                   </button>
+                 </div>
+                 <button
+                   onClick={() => setShowScoringModal(true)}
+                   className={`${THEME.colors.lightBlue} hover:bg-gray-700 text-gray-300 hover:text-white ${THEME.fontStyles.buttonWeight} py-2 px-3 rounded-md transition-colors ${THEME.fontSizes.button}`}
+                 >
+                   ?
+                 </button>
+              </div>
             </div>
           </div>
         </div>
@@ -631,7 +633,7 @@ function CompetitionDashboard() {
                     <tr key={team.name} className={index % 2 === 0 ? `${THEME.colors.lightBlue}` : `${THEME.colors.darkBlue}`}>
                       <td className={`px-3 py-2 ${THEME.fontSizes.dataTable} ${THEME.fontStyles.titleWeight} ${THEME.colors.white}`}>{team.position}</td>
                       <td className={`px-3 py-2 ${THEME.fontSizes.dataTable} ${THEME.fontStyles.buttonWeight} ${THEME.colors.white}`}>
-                        {getTeamAbbr(team.name)}
+                        {getTeamAbbreviation(team.name)}
                         {overachiever && (
                           <span className={`${THEME.colors.green} ml-1`}>({Math.abs(overachiever.delta)})</span>
                         )}
@@ -695,7 +697,7 @@ function CompetitionDashboard() {
       </div>
       
       {/* CSS Custom Property for Controls Width */}
-      <style jsx>{`
+      <style>{`
         :global(:root) {
           --controls-width: auto;
         }

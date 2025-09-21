@@ -1,6 +1,7 @@
 // src/components/TeamItem.jsx
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { getTeamInfo } from '../data/teamInfo'
 
 function TeamItem({ team, position }) {
   const {
@@ -17,32 +18,7 @@ function TeamItem({ team, position }) {
     transition,
   }
 
-  // Team colors and short names for logos
-  const getTeamInfo = (teamId) => {
-    const teamData = {
-      'arsenal': { colors: 'bg-red-600', short: 'ARS', primary: '#DC143C', secondary: '#FFFFFF' },
-      'aston-villa': { colors: 'bg-purple-800', short: 'AVL', primary: '#7B1342', secondary: '#94D3E0' },
-      'bournemouth': { colors: 'bg-red-500', short: 'BOU', primary: '#DA020E', secondary: '#000000' },
-      'brentford': { colors: 'bg-red-500', short: 'BRE', primary: '#FB0E00', secondary: '#FFF200' },
-      'brighton': { colors: 'bg-blue-500', short: 'BRI', primary: '#0057B8', secondary: '#FFCD00' },
-      'burnley': { colors: 'bg-purple-900', short: 'BUR', primary: '#6C1D45', secondary: '#99D6EA' },
-      'chelsea': { colors: 'bg-blue-600', short: 'CHE', primary: '#034694', secondary: '#FFFFFF' },
-      'crystal-palace': { colors: 'bg-blue-800', short: 'CRY', primary: '#1B458F', secondary: '#C4122E' },
-      'everton': { colors: 'bg-blue-700', short: 'EVE', primary: '#003399', secondary: '#FFFFFF' },
-      'fulham': { colors: 'bg-white border', short: 'FUL', primary: '#FFFFFF', secondary: '#000000' },
-      'leeds': { colors: 'bg-white border', short: 'LEE', primary: '#FFFFFF', secondary: '#1D428A' },
-      'liverpool': { colors: 'bg-red-700', short: 'LIV', primary: '#C8102E', secondary: '#00B2A9' },
-      'man-city': { colors: 'bg-sky-500', short: 'MCI', primary: '#6CABDD', secondary: '#1C2C5B' },
-      'man-united': { colors: 'bg-red-600', short: 'MUN', primary: '#DA020E', secondary: '#FBE122' },
-      'newcastle': { colors: 'bg-black', short: 'NEW', primary: '#241F20', secondary: '#FFFFFF' },
-      'nottingham-forest': { colors: 'bg-red-700', short: 'NFO', primary: '#DD0000', secondary: '#FFFFFF' },
-      'sunderland': { colors: 'bg-red-600', short: 'SUN', primary: '#C8102E', secondary: '#FFFFFF' },
-      'tottenham': { colors: 'bg-white border', short: 'TOT', primary: '#FFFFFF', secondary: '#132257' },
-      'west-ham': { colors: 'bg-purple-900', short: 'WHU', primary: '#7A263A', secondary: '#1BB1E7' },
-      'wolves': { colors: 'bg-orange-500', short: 'WOL', primary: '#FDB462', secondary: '#231F20' }
-    }
-    return teamData[teamId] || { colors: 'bg-gray-500', short: 'TBD', primary: '#6B7280', secondary: '#FFFFFF' }
-  }
+  // Centralized team metadata
 
   // Different styling based on position
   const getPositionStyle = (pos) => {

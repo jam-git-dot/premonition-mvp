@@ -17,7 +17,8 @@
     "@supabase/supabase-js": "^2.53.0",
     "@vercel/analytics": "^1.5.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "readline-sync": "^1.4.10"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
@@ -32,5 +33,18 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "vite": "^7.0.4"
-  }
+  },
+  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
+  "main": "eslint.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jam-git-dot/premonition-mvp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jam-git-dot/premonition-mvp/issues"
+  },
+  "homepage": "https://github.com/jam-git-dot/premonition-mvp#readme"
 }
