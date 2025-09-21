@@ -56,7 +56,7 @@ function CompetitionDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-blue-200 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-3">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
             🏆 Premonition Competition
           </h1>
@@ -72,8 +72,8 @@ function CompetitionDashboard() {
         </div>
 
         {/* Compact Centered Controls */}
-        <div className="flex justify-center mb-6">
-          <div className="bg-white rounded-lg shadow-lg p-4 inline-block">
+        <div className="flex justify-center mb-4">
+          <div className="bg-white rounded-lg shadow-lg p-3 inline-block">
             {/* View Mode Toggle */}
             <div className="flex justify-center mb-4">
               <div className="bg-gray-100 rounded-lg p-1 flex">
@@ -139,80 +139,115 @@ function CompetitionDashboard() {
           </div>
         </div>
 
-        {/* Compact Top 4 + Last Place */}
-        <div className="bg-white rounded-lg shadow-lg p-4 mb-6">
-          <div className="flex items-center justify-between">
-            {/* Left side - Group and Matchweek info */}
-            <div className="text-left text-gray-600">
-              <div className="mb-1 text-sm">
-                {selectedGroup === 'all' ? 'All Entries' : selectedGroup === 'LIV' ? 'Klopptoberfest' : 'Fantrax FPL'}
-              </div>
-              <div className="text-lg font-medium">MW4</div>
+        {/* Minimal Vertical Leaderboard */}
+        <div className="flex justify-center mb-6">
+          <div className="bg-white rounded-lg shadow-lg p-4 inline-block">
+            {/* Title */}
+            <h3 className="text-lg font-bold text-gray-800 text-center mb-1">LEADERS & LOSERS</h3>
+            <div className="text-center text-xs text-gray-400 mb-1">
+              {selectedGroup === 'all' ? 'All Entries' : selectedGroup === 'LIV' ? 'Klopptoberfest' : 'Fantrax FPL'} | MW4
             </div>
             
-            {/* Center - Top performers */}
-            <div className="flex items-center space-x-8 text-sm">
-              {(() => {
-                // Group results by score to handle ties (using enhanced results)
-                const scoreGroups = {};
-                enhancedResults.forEach((result, index) => {
-                  if (index < 8) { // Only consider top 8 for potential top 4 spots
-                    const score = result.totalScore;
-                    if (!scoreGroups[score]) scoreGroups[score] = [];
-                    scoreGroups[score].push(result);
+            {/* Compact Table */}
+            <table className="w-full text-xs">
+              <tbody>
+                {(() => {
+                  // Group results by score to handle ties
+                  const scoreGroups = {};
+                  enhancedResults.forEach((result, index) => {
+                    if (index < 8) { // Only consider top 8 for potential top 4 spots
+                      const score = result.totalScore;
+                      if (!scoreGroups[score]) scoreGroups[score] = [];
+                      scoreGroups[score].push(result);
+                    }
+                  });
+                  
+                  const sortedScores = Object.keys(scoreGroups).map(Number).sort((a, b) => a - b);
+                  const allRows = [];
+                  let currentPosition = 1;
+                  
+                  // Build top 3 positions with individual rows for ties
+                  for (const score of sortedScores) {
+                    if (currentPosition <= 3) {
+                      const positionGroup = scoreGroups[score];
+                      const isTied = positionGroup.length > 1;
+                      
+                      positionGroup.forEach(person => {
+                        allRows.push({
+                          position: currentPosition,
+                          person: person,
+                          score: score,
+                          isTied: isTied
+                        });
+                      });
+                      
+                      currentPosition += positionGroup.length;
+                    }
                   }
-                });
-                
-                const sortedScores = Object.keys(scoreGroups).map(Number).sort((a, b) => a - b);
-                const topPositions = [];
-                let currentPosition = 1;
-                
-                // Build top 3 positions only
-                for (const score of sortedScores) {
-                  if (currentPosition <= 3) {
-                    topPositions.push({
-                      position: currentPosition,
-                      people: scoreGroups[score],
-                      score: score
+                  
+                  // Add last place people
+                  const lastResult = enhancedResults[enhancedResults.length - 1];
+                  const lastScore = lastResult.totalScore;
+                  const lastPlacePeople = enhancedResults.filter(r => r.totalScore === lastScore);
+                  const lastIsTied = lastPlacePeople.length > 1;
+                  
+                  lastPlacePeople.forEach(person => {
+                    allRows.push({
+                      position: 'last',
+                      person: person,
+                      score: lastScore,
+                      isTied: lastIsTied,
+                      isLast: true
                     });
-                    currentPosition += scoreGroups[score].length;
-                  }
-                }
-                
-                const topElements = topPositions.slice(0, 3).map((positionGroup, groupIndex) => (
-                  <div key={groupIndex} className="text-center">
-                    <span className="text-4xl">
-                      {positionGroup.position === 1 ? '🥇' : positionGroup.position === 2 ? '🥈' : '🥉'}
-                    </span>
-                    <div className="font-bold text-xs mt-1">
-                      {positionGroup.people.map(p => p.isConsensus ? `${p.name} 🤖` : p.name).join(', ')}
-                    </div>
-                    <div className="text-sm font-medium text-gray-700 mt-1">
-                      {positionGroup.score}
-                    </div>
-                  </div>
-                ));
-
-                // Last place
-                const lastResult = enhancedResults[enhancedResults.length - 1];
-                const lastPlaceElement = (
-                  <div key="last" className="text-center">
-                    <span className="text-4xl">💩</span>
-                    <div className="font-bold text-xs mt-1">
-                      {lastResult.isConsensus ? `${lastResult.name} 🤖` : lastResult.name}
-                    </div>
-                    <div className="text-sm font-medium text-gray-700 mt-1">
-                      {lastResult.totalScore}
-                    </div>
-                  </div>
-                );
-
-                return [...topElements, lastPlaceElement];
-              })()}
-            </div>
-            
-            {/* Right side spacer for balance */}
-            <div className="w-16"></div>
+                  });
+                  
+                  return allRows.map((row, index) => {
+                    // Determine background color and emoji
+                    let bgColor = '';
+                    let emoji = '';
+                    let positionText = '';
+                    
+                    if (row.isLast) {
+                      bgColor = 'bg-red-100';
+                      emoji = '💩';
+                      positionText = row.isTied ? 'TLast' : 'Last';
+                    } else if (row.position === 1) {
+                      bgColor = 'bg-yellow-100';
+                      emoji = '🥇';
+                      positionText = row.isTied ? 'T1st' : '1st';
+                    } else if (row.position === 2) {
+                      bgColor = 'bg-gray-200';
+                      emoji = '🥈';
+                      positionText = row.isTied ? 'T2nd' : '2nd';
+                    } else if (row.position === 3) {
+                      bgColor = 'bg-amber-200';
+                      emoji = '🥉';
+                      positionText = row.isTied ? 'T3rd' : '3rd';
+                    }
+                    
+                    return (
+                      <tr key={index}>
+                        <td className="px-0 py-1 text-center">
+                          <div className={`px-1 py-1 mx-0.5 my-0.5 rounded font-medium ${bgColor}`}>
+                            {positionText} {emoji}
+                          </div>
+                        </td>
+                        <td className="px-0 py-1 text-center">
+                          <div className={`px-1 py-1 mx-0.5 my-0.5 rounded font-medium ${bgColor} ${row.isLast ? 'text-red-700' : 'text-gray-800'}`}>
+                            {row.person.isConsensus ? `${row.person.name} 🤖` : row.person.name}
+                          </div>
+                        </td>
+                        <td className="px-0 py-1 text-center">
+                          <div className={`px-1 py-1 mx-0.5 my-0.5 rounded font-medium ${bgColor} ${row.isLast ? 'text-red-700' : 'text-gray-700'}`}>
+                            {row.score}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  });
+                })()}
+              </tbody>
+            </table>
           </div>
         </div>
 
