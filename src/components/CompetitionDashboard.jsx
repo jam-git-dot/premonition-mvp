@@ -181,7 +181,7 @@ function CompetitionDashboard() {
                 
                 const topElements = topPositions.slice(0, 3).map((positionGroup, groupIndex) => (
                   <div key={groupIndex} className="text-center">
-                    <span className="text-2xl">
+                    <span className="text-4xl">
                       {positionGroup.position === 1 ? '🥇' : positionGroup.position === 2 ? '🥈' : '🥉'}
                     </span>
                     <div className="font-bold text-xs mt-1">
@@ -197,7 +197,7 @@ function CompetitionDashboard() {
                 const lastResult = enhancedResults[enhancedResults.length - 1];
                 const lastPlaceElement = (
                   <div key="last" className="text-center">
-                    <span className="text-2xl">💩</span>
+                    <span className="text-4xl">💩</span>
                     <div className="font-bold text-xs mt-1">
                       {lastResult.isConsensus ? `${lastResult.name} 🤖` : lastResult.name}
                     </div>
@@ -458,11 +458,6 @@ function CompetitionDashboard() {
             <p><strong>Leaderboard colors:</strong> <span className="bg-green-500 text-white px-1 rounded">Perfect (0)</span> • <span className="bg-green-200 text-green-800 px-1 rounded">Excellent (±1)</span> • <span className="bg-yellow-100 text-yellow-700 px-1 rounded">Good (±2-3)</span> • <span className="bg-yellow-200 text-yellow-800 px-1 rounded">Fair (4)</span> • <span className="bg-orange-200 text-orange-800 px-1 rounded">Poor (5-6)</span> • <span className="bg-red-200 text-red-800 px-1 rounded">Terrible (7+)</span></p>
             <p><strong>Range:</strong> Mean ± 1 standard deviation of group predictions</p>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-center text-sm text-gray-500">
-          <p>Powered by Premonition • Data updated after each Premier League matchweek</p>
         </div>
 
         {/* Scoring Modal */}
