@@ -1,0 +1,3 @@
+- after big changes to code that complete a request, make sure to npm run dev so I can refresh my localhost and see if the changes worked or not. Please explicitly say when you do this.
+- Always tell me if an idea is a bad idea. You know more than me about coding projects, so pleease push back if things are unclear, tricky, or incorrect altogether.
+- please check if localhost servers are running or not when completing a specific code request. Frequently you forget to check, and I have to waste time to ask you to check. When you've completed a code task, check if localhost 5174 is running, before confirming everything is complete.

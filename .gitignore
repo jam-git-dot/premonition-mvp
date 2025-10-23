@@ -23,3 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 .env.local
+
+# Personal dev tools (not part of project)
+dev-tips.js
+.dev-tips.json
