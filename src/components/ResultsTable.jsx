@@ -6,7 +6,6 @@ import { getTeamAbbreviation } from '../data/teamInfo';
 const ResultsTable = React.memo(function ResultsTable({
   enhancedResults,
   teamsInOrder,
-  viewMode,
   onCellClick,
   onNameClick
 }) {
@@ -35,30 +34,22 @@ const ResultsTable = React.memo(function ResultsTable({
         <table className="w-full">
           <thead className="bg-black border-b border-gray-800 sticky top-0 z-30">
             <tr>
-              <th className={`font-bold text-white sticky left-0 bg-black z-40 text-xs ${
-                viewMode === 'expanded' ? 'px-2 py-2' : 'px-1 py-1'
-              }`}>
+              <th className="font-bold text-white sticky left-0 bg-black z-40 text-xs px-1 py-1">
                 #
               </th>
-              <th className={`font-bold text-white sticky bg-black z-40 text-xs ${
-                viewMode === 'expanded' ? 'px-2 py-2 left-8' : 'px-1 py-1 left-6'
-              }`}>
+              <th className="font-bold text-white sticky bg-black z-40 text-xs px-1 py-1 left-6">
                 Name
               </th>
-              <th className={`font-bold text-white sticky bg-black z-40 text-xs ${
-                viewMode === 'expanded' ? 'px-2 py-2 left-32' : 'px-1 py-1 left-24'
-              }`}>
+              <th className="font-bold text-white sticky bg-black z-40 text-xs px-1 py-1 left-24">
                 Total
               </th>
               {teamsInOrder.map(team => (
-                <th key={team.name} className={`font-bold text-white sticky top-0 bg-black z-30 ${
-                  viewMode === 'expanded' ? 'px-1 py-3 text-sm min-w-[70px]' : 'px-1 py-2 text-xs min-w-[35px]'
-                }`}>
+                <th key={team.name} className="font-bold text-white sticky top-0 bg-black z-30 px-1 py-2 text-xs min-w-[35px]">
                   <div className="flex flex-col items-center">
-                    <div className={`font-bold text-white ${viewMode === 'simplified' ? 'text-xs' : ''}`}>
+                    <div className="font-bold text-white text-xs">
                       {getTeamAbbreviation(team.name)}
                     </div>
-                    <div className={`text-gray-500 mt-1 ${viewMode === 'expanded' ? 'text-xs' : 'text-xs'}`}>
+                    <div className="text-gray-500 mt-1 text-xs">
                       #{team.position}
                     </div>
                   </div>
@@ -97,20 +88,20 @@ const ResultsTable = React.memo(function ResultsTable({
 
               return (
                 <tr key={result.name} className={baseRowClass} style={{ backgroundColor: tintedBgColor }}>
-                  <td className={`font-bold text-white sticky left-0 z-10 text-xs ${baseRowClass} ${viewMode === 'expanded' ? 'px-2 py-2' : 'px-1 py-2'}`}
+                  <td className={`font-bold text-white sticky left-0 z-10 text-xs ${baseRowClass} px-1 py-2`}
                       style={{ backgroundColor: tintedBgColor }}>
                     {showPosition ? actualPosition : ''}
                   </td>
                   <td
                     onClick={() => onNameClick(result.name)}
-                    className={`cursor-pointer font-semibold sticky z-10 text-xs ${baseRowClass} ${viewMode === 'expanded' ? 'px-2 py-2 left-8' : 'px-1 py-2 left-6'} ${
+                    className={`cursor-pointer font-semibold sticky z-10 text-xs ${baseRowClass} px-1 py-2 left-6 ${
                       result.isConsensus ? 'text-blue-400' : 'text-white'
                     }`}
                       style={{ backgroundColor: tintedBgColor }}
                   >
                     {result.isConsensus ? `${result.name} 🤖` : result.name}
                   </td>
-                  <td className={`text-center font-bold sticky z-10 text-xs ${baseRowClass} ${viewMode === 'expanded' ? 'px-2 py-2 left-32' : 'px-1 py-2 left-24'} ${
+                  <td className={`text-center font-bold sticky z-10 text-xs ${baseRowClass} px-1 py-2 left-24 ${
                     result.isConsensus ? 'text-blue-400' : 'text-white'
                   }`}
                       style={{ backgroundColor: tintedBgColor }}>
@@ -118,24 +109,12 @@ const ResultsTable = React.memo(function ResultsTable({
                   </td>
                   {teamsInOrder.map(team => {
                     const teamData = result.teamScores[team.name];
-                    const cellClass = viewMode === 'expanded' ? 'px-1 py-2 text-center' : 'px-0 py-2 text-center';
                     return (
-                      <td key={team.name} className={cellClass} onClick={(e) => onCellClick(result.name, team.name, e)}>
+                      <td key={team.name} className="px-0 py-2 text-center" onClick={(e) => onCellClick(result.name, team.name, e)}>
                         {teamData ? (
-                          viewMode === 'expanded' ? (
-                            <div className={`px-1 py-2 rounded text-xs font-medium ${getCellStyle(teamData.score)}`}>
-                              <div className="text-sm font-bold mb-1">
-                                {formatCellContent(teamData, team.name).score}
-                              </div>
-                              <div className="text-xs leading-tight">
-                                {formatCellContent(teamData, team.name).details}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className={`px-1 py-1 mx-0.5 my-0.5 rounded text-xs font-bold ${getCellStyle(teamData.score)}`}>
-                              {formatCellContent(teamData, team.name).score}
-                            </div>
-                          )
+                          <div className={`px-1 py-1 mx-0.5 my-0.5 rounded text-xs font-bold ${getCellStyle(teamData.score)}`}>
+                            {formatCellContent(teamData, team.name).score}
+                          </div>
                         ) : (
                           <span className="text-gray-500 text-xs">-</span>
                         )}

@@ -10,7 +10,6 @@ import LiveTableSection from './LiveTableSection';
 
 function CompetitionDashboard() {
   const [selectedGroup, setSelectedGroup] = useState('all');
-  const [viewMode, setViewMode] = useState('simplified'); // 'expanded' or 'simplified'
   const [showScoringModal, setShowScoringModal] = useState(false);
   const [activeUser, setActiveUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
@@ -150,19 +149,6 @@ function CompetitionDashboard() {
                   <option key={wk} value={wk}>GW{wk}</option>
                 ))}
               </select>
-              {/* View Mode Toggle Switch */}
-              <div className={`${THEME.colors.lightBlue} rounded-lg p-1 flex`}
-              >
-                {['expanded','simplified'].map(mode => (
-                  <button
-                    key={mode}
-                    onClick={() => setViewMode(mode)}
-                    className={`px-4 py-2 rounded-md ${THEME.fontStyles.buttonWeight} transition-colors ${THEME.fontSizes.button} ${THEME.controls.padding} ${viewMode===mode? 'bg-blue-600 text-white shadow-sm':'text-gray-300 hover:text-white'}`}
-                  >
-                    {mode==='expanded'? '📊':'📋'}
-                  </button>
-                ))}
-              </div>
               {/* Hide leaderboard */}
               <button
                 onClick={handleToggleLeaderboard}
@@ -176,7 +162,6 @@ function CompetitionDashboard() {
         <ResultsTable
           enhancedResults={enhancedResults}
           teamsInOrder={teamsInOrder}
-          viewMode={viewMode}
           onCellClick={handleCellClick}
           onNameClick={handleNameClick}
         />
