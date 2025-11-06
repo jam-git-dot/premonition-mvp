@@ -1,6 +1,9 @@
 // src/lib/theme.js
 // Shared theme constants for the competition dashboard
 
+// Shared layout constants
+export const LEADERBOARD_CONTAINER_HEIGHT = 380; // Total height of leaderboard container in pixels (enough for all content)
+
 export const THEME = {
   colors: {
     green: 'text-green-400',        // Overachievers color

@@ -59,6 +59,12 @@ console.log(`\n✅ Gameweek ${nextWeek} added and saved to standingsByGameweek.j
     scoresData.lastUpdated = new Date().toISOString();
     fs.writeFileSync(scoresPath, JSON.stringify(scoresData, null, 2));
     console.log(`✅ Scores for Gameweek ${nextWeek} saved to scoresByGameweek.json.`);
+
+    // Show week-over-week comparison if previous week exists
+    if (nextWeek > 1) {
+      const { displayComparison } = require('./compare-weeks.cjs');
+      displayComparison(nextWeek - 1, nextWeek, 'all');
+    }
   } catch (err) {
     console.error('Error computing or saving scores:', err);
   }

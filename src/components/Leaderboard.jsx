@@ -1,6 +1,6 @@
 // src/components/Leaderboard.jsx
 import React from 'react';
-import { THEME } from '../lib/theme';
+import { THEME, LEADERBOARD_CONTAINER_HEIGHT } from '../lib/theme';
 
 const Leaderboard = React.memo(function Leaderboard({
   enhancedResults,
@@ -24,7 +24,7 @@ const Leaderboard = React.memo(function Leaderboard({
 
   return (
     <div className="flex justify-center mb-4">
-      <div className="bg-gray-900 rounded-lg shadow-lg p-3 w-full max-w-[95vw] sm:max-w-[450px]">
+      <div className="bg-gray-900 rounded-lg shadow-lg p-3 w-full max-w-[95vw] sm:max-w-[450px]" style={{ minHeight: '312px' }}>
         {/* Compact Title */}
         <div className="text-center mb-2">
           <h3 className="text-base font-bold text-white mb-0.5">

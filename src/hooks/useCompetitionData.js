@@ -9,12 +9,19 @@ import {
   realPredictions
 } from '../data/competitionData';
 import { getGroupData } from '../data/groupDataProcessor';
+import standingsByGameweek from '../data/standingsByGameweek.json';
 
 export function useCompetitionData(selectedGroup, selectedMatchweek) {
+  // Get standings for the selected matchweek
+  const selectedWeekStandings = useMemo(() =>
+    standingsByGameweek[selectedMatchweek] || currentStandings,
+    [selectedMatchweek]
+  );
+
   // Memoize expensive calculations
   const groupData = useMemo(() =>
-    getGroupData(selectedGroup, currentStandings),
-    [selectedGroup]
+    getGroupData(selectedGroup, selectedWeekStandings),
+    [selectedGroup, selectedWeekStandings]
   );
 
   const competitionResults = useMemo(() =>
@@ -29,7 +36,12 @@ export function useCompetitionData(selectedGroup, selectedMatchweek) {
     [selectedMatchweek, selectedGroup]
   );
 
-  const teamsInOrder = useMemo(() => getTeamsInTableOrder(), []);
+  const teamsInOrder = useMemo(() =>
+    Object.entries(selectedWeekStandings)
+      .sort(([a], [b]) => parseInt(a) - parseInt(b))
+      .map(([pos, team]) => ({ position: parseInt(pos), name: team })),
+    [selectedWeekStandings]
+  );
 
   // Enhanced competition results with group consensus
   const enhancedResults = useMemo(() =>

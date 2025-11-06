@@ -4,7 +4,7 @@
 // JAM NOTES - Also, we can condense this by doing team abbreviations instead of full names everywhere.
 // JAM NOTES - We need to condense this, shorten responses to team IDs or abbreviations or something. plus remove the comments below them.
 // Current Premier League table after MW4
-import standingsByGameweek from './standingsByGameweek.json';
+import standingsByGameweek from './standingsByGameweek.json' with { type: 'json' };
 
 const weekNumbers = Object.keys(standingsByGameweek)
   .filter(k => /^\d+$/.test(k))

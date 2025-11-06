@@ -7,6 +7,8 @@ import CellPopup from './CellPopup';
 import Leaderboard from './Leaderboard';
 import ResultsTable from './ResultsTable';
 import LiveTableSection from './LiveTableSection';
+import WeekComparisonModal from './WeekComparisonModal';
+import LeaderboardDotPlot from './LeaderboardDotPlot';
 
 function CompetitionDashboard() {
   const [selectedGroup, setSelectedGroup] = useState('all');
@@ -16,6 +18,7 @@ function CompetitionDashboard() {
   const [showLeaderboard, setShowLeaderboard] = useState(true);
   const [selectedMatchweek, setSelectedMatchweek] = useState(latestMatchweek);
   const [cellPopupInfo, setCellPopupInfo] = useState(null);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
 
   const currentMatchweek = selectedMatchweek;
 
@@ -24,7 +27,9 @@ function CompetitionDashboard() {
     groupData,
     competitionResults,
     teamsInOrder,
-    enhancedResults
+    enhancedResults,
+    prevScoreMap,
+    prevPosMap
   } = useCompetitionData(selectedGroup, selectedMatchweek);
 
   // Filter out FPL for now as requested
@@ -126,16 +131,7 @@ function CompetitionDashboard() {
           </div>
         </div>
 
-        {/* Leaderboard Component */}
-        <Leaderboard
-          enhancedResults={enhancedResults}
-          selectedGroup={selectedGroup}
-          currentMatchweek={currentMatchweek}
-          showLeaderboard={showLeaderboard}
-          onToggleLeaderboard={handleToggleLeaderboard}
-        />
-
-        {/* Controls: GW selector, view toggle switch, hide leaderboard */}
+        {/* Controls: GW selector, comparison button, hide leaderboard - MOVED ABOVE LEADERBOARD */}
         <div className="flex justify-center mb-6">
           <div className={`${THEME.colors.darkBlue} rounded-lg shadow-lg p-3 max-w-[450px] w-full`}>
             <div className="flex justify-center items-center space-x-2">
@@ -149,6 +145,17 @@ function CompetitionDashboard() {
                   <option key={wk} value={wk}>GW{wk}</option>
                 ))}
               </select>
+              {/* Week comparison button */}
+              {selectedMatchweek > 1 && (
+                <button
+                  onClick={() => setShowComparisonModal(true)}
+                  className={`${THEME.colors.lightBlue} hover:bg-gray-700 text-white ${THEME.fontStyles.buttonWeight} rounded-md transition-colors ${THEME.fontSizes.button} ${THEME.controls.padding} flex items-center gap-1`}
+                  title="View week-over-week changes"
+                >
+                  <span className="text-lg">Δ</span>
+                  <span className="text-lg">📊</span>
+                </button>
+              )}
               {/* Hide leaderboard */}
               <button
                 onClick={handleToggleLeaderboard}
@@ -157,6 +164,40 @@ function CompetitionDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Leaderboard and Dot Plot Side by Side */}
+        {showLeaderboard ? (
+          <div className="flex justify-center gap-4 mb-4 flex-wrap lg:flex-nowrap">
+            {/* Leaderboard Component */}
+            <div className="flex-shrink-0">
+              <Leaderboard
+                enhancedResults={enhancedResults}
+                selectedGroup={selectedGroup}
+                currentMatchweek={currentMatchweek}
+                showLeaderboard={showLeaderboard}
+                onToggleLeaderboard={handleToggleLeaderboard}
+              />
+            </div>
+
+            {/* Dot Plot Visualization */}
+            <div className="flex-shrink-0 w-full lg:w-auto">
+              <LeaderboardDotPlot
+                enhancedResults={enhancedResults}
+                prevScoreMap={prevScoreMap}
+                prevPosMap={prevPosMap}
+                onNameClick={handleNameClick}
+              />
+            </div>
+          </div>
+        ) : (
+          <Leaderboard
+            enhancedResults={enhancedResults}
+            selectedGroup={selectedGroup}
+            currentMatchweek={currentMatchweek}
+            showLeaderboard={showLeaderboard}
+            onToggleLeaderboard={handleToggleLeaderboard}
+          />
+        )}
 
         {/* Results Table Component */}
         <ResultsTable
@@ -250,12 +291,23 @@ function CompetitionDashboard() {
       
       {/* Render cell popup if any */}
       {cellPopupInfo && <CellPopup info={cellPopupInfo} onClose={() => setCellPopupInfo(null)} />}
+
+      {/* Week Comparison Modal */}
+      {showComparisonModal && (
+        <WeekComparisonModal
+          weekA={selectedMatchweek - 1}
+          weekB={selectedMatchweek}
+          selectedGroup={selectedGroup}
+          onClose={() => setShowComparisonModal(false)}
+        />
+      )}
+
       {/* CSS Custom Property for Controls Width */}
       <style>{`
         :global(:root) {
           --controls-width: auto;
         }
-        
+
         @media (min-width: 768px) {
           :global(:root) {
             --controls-width: fit-content;
