@@ -27,3 +27,6 @@ dist-ssr
 # Personal dev tools (not part of project)
 dev-tips.js
 .dev-tips.json
+
+# Internal spec documents (not for public repo)
+GAMEWEEK_UPDATE_SPEC.md
