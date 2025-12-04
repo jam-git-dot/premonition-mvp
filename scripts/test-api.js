@@ -1,5 +1,5 @@
 /**
- * Test script to verify API-Football connectivity and inspect response format
+ * Test script to verify Football-Data.org API connectivity and inspect response format
  * Run with: node scripts/test-api.js
  */
 
@@ -8,12 +8,16 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 const API_KEY = process.env.FOOTBALL_API_KEY;
-const API_HOST = 'v3.football.api-sports.io';
-const BASE_URL = `https://${API_HOST}`;
+const BASE_URL = 'https://api.football-data.org/v4';
 
-// Premier League ID
-const LEAGUE_ID = 39;
-const SEASON = 2023; // Testing with 2023 season (free plan limitation)
+// API Configuration
+const API_LIMITS = {
+  callsPerMinute: 10,  // Free tier limit
+  expectedUsage: 'few calls per week' // Our expected usage pattern
+};
+
+// Premier League competition code
+const COMPETITION_ID = 'PL'; // or 2021 for numeric ID
 
 if (!API_KEY) {
   console.error('❌ ERROR: FOOTBALL_API_KEY not found in .env.local');
@@ -22,20 +26,29 @@ if (!API_KEY) {
 }
 
 async function testAPI() {
-  console.log('🔍 Testing API-Football connection...\n');
+  console.log('🔍 Testing Football-Data.org API connection...\n');
+  console.log('📊 API Configuration:');
+  console.log(`   Rate Limit: ${API_LIMITS.callsPerMinute} calls/minute`);
+  console.log(`   Expected Usage: ${API_LIMITS.expectedUsage}\n`);
 
   try {
-    // Test 1: Get current standings
+    // Test: Get current standings
     console.log('📊 Fetching Premier League standings...');
-    const response = await fetch(`${BASE_URL}/standings?league=${LEAGUE_ID}&season=${SEASON}`, {
+    const response = await fetch(`${BASE_URL}/competitions/${COMPETITION_ID}/standings`, {
       method: 'GET',
       headers: {
-        'x-rapidapi-key': API_KEY,
-        'x-rapidapi-host': API_HOST
+        'X-Auth-Token': API_KEY
       }
     });
 
     console.log(`Status: ${response.status} ${response.statusText}`);
+
+    // Check rate limit headers
+    const rateLimitRemaining = response.headers.get('X-Requests-Available-Minute');
+    if (rateLimitRemaining) {
+      console.log(`Rate Limit Remaining: ${rateLimitRemaining}/${API_LIMITS.callsPerMinute} calls this minute`);
+    }
+    console.log();
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -46,87 +59,92 @@ async function testAPI() {
 
     const data = await response.json();
 
-    console.log('\n✅ API connection successful!\n');
+    console.log('✅ API connection successful!\n');
 
-    // Display API quota info
-    if (data.parameters) {
-      console.log('📋 Request Parameters:');
-      console.log(JSON.stringify(data.parameters, null, 2));
-      console.log();
+    // IMPORTANT: Check what season we're actually getting
+    console.log('🗓️  SEASON INFORMATION:');
+    if (data.season) {
+      console.log(`   Start Date: ${data.season.startDate}`);
+      console.log(`   End Date: ${data.season.endDate}`);
+      console.log(`   Current Matchday: ${data.season.currentMatchday}`);
+      console.log(`   Winner (if ended): ${data.season.winner || 'N/A - Season in progress'}`);
     }
-
-    if (data.errors && Object.keys(data.errors).length > 0) {
-      console.log('⚠️  API Errors:');
-      console.log(JSON.stringify(data.errors, null, 2));
-      console.log();
-    }
+    console.log();
 
     // Check if we have standings data
-    if (!data.response || data.response.length === 0) {
+    if (!data.standings || data.standings.length === 0) {
       console.log('❌ No standings data returned');
       console.log('Full response:', JSON.stringify(data, null, 2));
       return;
     }
 
-    const standings = data.response[0].league.standings[0];
+    // Football-data.org returns standings in an array, first element is the main table
+    const standings = data.standings[0].table;
 
     console.log('📈 Standings Data Structure Check:');
-    console.log(`Total teams: ${standings.length}`);
+    console.log(`   Total teams: ${standings.length}`);
     console.log();
 
     // Display first 3 teams to verify data structure
     console.log('🔍 Sample Data (Top 3 teams):\n');
-    standings.slice(0, 3).forEach((team, index) => {
-      console.log(`Position ${team.rank}: ${team.team.name}`);
-      console.log(`  Games Played: ${team.all.played}`);
-      console.log(`  Points: ${team.points}`);
-      console.log(`  Form: ${team.form}`);
+    standings.slice(0, 3).forEach((team) => {
+      console.log(`Position ${team.position}: ${team.team.name}`);
+      console.log(`   Games Played: ${team.playedGames}`);
+      console.log(`   Points: ${team.points}`);
+      console.log(`   W-D-L: ${team.won}-${team.draw}-${team.lost}`);
       console.log();
     });
 
-    // Check for "games played" field
+    // Check for required fields
     console.log('✅ Key Fields Verified:');
-    console.log(`  - "rank" field exists: ${standings[0].rank !== undefined}`);
-    console.log(`  - "team.name" field exists: ${standings[0].team?.name !== undefined}`);
-    console.log(`  - "all.played" field exists: ${standings[0].all?.played !== undefined}`);
+    console.log(`   - "position" field exists: ${standings[0].position !== undefined}`);
+    console.log(`   - "team.name" field exists: ${standings[0].team?.name !== undefined}`);
+    console.log(`   - "playedGames" field exists: ${standings[0].playedGames !== undefined}`);
     console.log();
 
     // Find minimum games played (this determines the current complete gameweek)
-    const gamesPlayed = standings.map(team => team.all.played);
+    const gamesPlayed = standings.map(team => team.playedGames);
     const minGames = Math.min(...gamesPlayed);
     const maxGames = Math.max(...gamesPlayed);
 
     console.log('🎮 Gameweek Status:');
-    console.log(`  Minimum games played: ${minGames}`);
-    console.log(`  Maximum games played: ${maxGames}`);
-    console.log(`  Current complete gameweek: GW${minGames}`);
+    console.log(`   Minimum games played: ${minGames}`);
+    console.log(`   Maximum games played: ${maxGames}`);
+    console.log(`   Current complete gameweek: GW${minGames}`);
     console.log();
 
     if (minGames !== maxGames) {
       console.log('⚠️  Not all teams have played the same number of games');
-      console.log(`  Teams with ${minGames} games played:`);
-      standings
-        .filter(team => team.all.played === minGames)
-        .forEach(team => console.log(`    - ${team.team.name}`));
+      const teamsWithMinGames = standings.filter(team => team.playedGames === minGames);
+      console.log(`   Teams with ${minGames} games played:`);
+      teamsWithMinGames.forEach(team => console.log(`      - ${team.team.name}`));
+      console.log();
+    } else {
+      console.log('✅ All teams have played the same number of games');
+      console.log(`   Gameweek ${minGames} is COMPLETE and ready to save!`);
       console.log();
     }
 
     // Display all team names for mapping reference
     console.log('📝 All Team Names (for mapping):');
     standings.forEach(team => {
-      console.log(`  ${team.rank}. ${team.team.name}`);
+      console.log(`   ${team.position}. ${team.team.name}`);
     });
 
     console.log('\n✅ API test complete!');
-    console.log('\nNext steps:');
-    console.log('  1. Review team names above and create mapping');
-    console.log('  2. Verify the "all.played" field is working correctly');
-    console.log(`  3. Current complete gameweek appears to be: GW${minGames}`);
+    console.log('\n📋 Summary:');
+    console.log(`   - API working: YES`);
+    console.log(`   - Season: ${data.season?.startDate} to ${data.season?.endDate}`);
+    console.log(`   - "playedGames" field available: YES`);
+    console.log(`   - Current complete gameweek: GW${minGames}`);
+    console.log(`   - Rate limit comfortable: YES (${API_LIMITS.callsPerMinute}/min >> ${API_LIMITS.expectedUsage})`);
 
   } catch (error) {
     console.error('❌ Error during API test:');
     console.error(error.message);
-    console.error(error.stack);
+    if (error.stack) {
+      console.error(error.stack);
+    }
   }
 }
 
