@@ -26,6 +26,7 @@ import {
   logPreview
 } from './validators.js';
 import { recordGap, checkForGaps } from './gap-tracker.js';
+import { notifySuccess, notifyGap, notifyError, notifyNoAction } from './discord-notifier.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -182,6 +183,13 @@ async function main() {
       console.log(`Next gameweek to save: GW${nextGameweekToSave}`);
       console.log(`Highest complete gameweek: GW${highestComplete}`);
       console.log();
+
+      // Notify Discord
+      await notifyNoAction('Gameweek in progress - not all teams have completed matches', {
+        currentGameweek: highestComplete,
+        gamesPlayed: `Teams have varying games played (${highestComplete}-${nextGameweekToSave})`
+      });
+
       console.log('='.repeat(60));
       console.log(`API calls made: ${getApiCallCount()}`);
       console.log('='.repeat(60));
@@ -192,6 +200,12 @@ async function main() {
       console.log('No new complete gameweeks to save.');
       console.log(`Current status: GW${highestComplete} is the latest complete gameweek (already saved)`);
       console.log();
+
+      // Notify Discord
+      await notifyNoAction('Latest gameweek already saved', {
+        currentGameweek: highestComplete
+      });
+
       console.log('='.repeat(60));
       console.log(`API calls made: ${getApiCallCount()}`);
       console.log('='.repeat(60));
@@ -211,7 +225,14 @@ async function main() {
       console.log();
 
       // Record the gap for manual backfill tracking
+      const missedGameweeks = [];
+      for (let gw = nextGameweekToSave; gw < highestComplete; gw++) {
+        missedGameweeks.push(gw);
+      }
       recordGap(lastSavedGameweek, highestComplete);
+
+      // Notify Discord about the gap
+      await notifyGap(missedGameweeks);
     }
 
     // We can only save the highest complete gameweek with confidence
@@ -282,6 +303,47 @@ async function main() {
         createBackup();
         writeStandingsFile(currentData);
         console.log('Standings file updated successfully');
+
+        // Step 7: Calculate and save competition scores
+        console.log('\nStep 7: Calculating competition scores...');
+        let playerComparisons = null;
+        try {
+          const { calculateCompetitionScoresForWeek } = await import('../src/data/competitionData.js');
+          const { compareWeeks } = await import('../compare-weeks.cjs');
+
+          // Read existing scores
+          const scoresPath = path.join(__dirname, '../src/data/scoresByGameweek.json');
+          let scoresData = {};
+          if (fs.existsSync(scoresPath)) {
+            scoresData = JSON.parse(fs.readFileSync(scoresPath, 'utf8'));
+          }
+
+          // Calculate and save scores for the new gameweek
+          const weekScores = calculateCompetitionScoresForWeek(gameweekToSave);
+          scoresData[gameweekToSave] = weekScores;
+          scoresData.lastUpdated = new Date().toISOString();
+          fs.writeFileSync(scoresPath, JSON.stringify(scoresData, null, 2));
+          console.log(`Scores calculated and saved for GW${gameweekToSave}`);
+
+          // Get player comparisons if previous week exists
+          if (gameweekToSave > 1 && scoresData[gameweekToSave - 1]) {
+            playerComparisons = compareWeeks(gameweekToSave - 1, gameweekToSave, 'all');
+            console.log('Player position changes calculated');
+          }
+        } catch (error) {
+          console.error('Warning: Could not calculate scores:', error.message);
+          // Continue anyway - scores are nice-to-have, not critical
+        }
+
+        // Notify Discord of success with player comparisons and team changes
+        const standingsArray = Object.entries(currentData[gameweekToSave])
+          .map(([position, team]) => ({ position: parseInt(position), team }))
+          .sort((a, b) => a.position - b.position);
+
+        // Get previous gameweek standings for team comparison
+        const previousStandings = gameweekToSave > 1 ? currentData[gameweekToSave - 1] : null;
+
+        await notifySuccess(gameweekToSave, standingsArray, playerComparisons, previousStandings);
       }
     }
 
@@ -301,6 +363,11 @@ async function main() {
     console.log(`Status: ${saveSuccessful ? 'SUCCESS' : 'FAILED'}`);
     console.log('='.repeat(60));
 
+    // If there was an error during processing, notify Discord
+    if (error && !isDryRun) {
+      await notifyError(new Error(error), { gameweek: gameweekToSave });
+    }
+
     // Check for any recorded gaps and alert
     checkForGaps();
 
@@ -311,6 +378,10 @@ async function main() {
       console.error('\nStack trace:');
       console.error(error.stack);
     }
+
+    // Notify Discord of error
+    await notifyError(error, { gameweek: lastSavedGameweek + 1 });
+
     process.exit(1);
   }
 }

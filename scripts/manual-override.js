@@ -20,6 +20,7 @@ import readlineSync from 'readline-sync';
 import { validateStandingsData, validateGameweek, logPreview } from './validators.js';
 import { getExpectedTeamNames } from './team-name-mapper.js';
 import { markAsManuallyFilled } from './gap-tracker.js';
+import { notifyManualOverride, notifyError } from './discord-notifier.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -245,6 +246,13 @@ async function main() {
   // Mark as manually filled in gap tracker
   markAsManuallyFilled(gameweek);
 
+  // Notify Discord
+  await notifyManualOverride(gameweek, {
+    interactive: isInteractive,
+    backupCreated: true,
+    validationPassed: true
+  });
+
   // Summary
   console.log();
   console.log('='.repeat(60));
@@ -258,12 +266,16 @@ async function main() {
 }
 
 // Run the script
-main().catch(error => {
+main().catch(async (error) => {
   console.error('\nFATAL ERROR:');
   console.error(error.message);
   if (error.stack) {
     console.error('\nStack trace:');
     console.error(error.stack);
   }
+
+  // Notify Discord of error
+  await notifyError(error, { context: 'Manual Override' });
+
   process.exit(1);
 });

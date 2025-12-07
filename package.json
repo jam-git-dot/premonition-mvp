@@ -11,7 +11,8 @@
     "update-standings": "node scripts/update-standings.js",
     "update-standings:dry-run": "node scripts/update-standings.js --dry-run",
     "manual-override": "node scripts/manual-override.js",
-    "manual-override:interactive": "node scripts/manual-override.js --interactive"
+    "manual-override:interactive": "node scripts/manual-override.js --interactive",
+    "test-discord": "node scripts/test-discord.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
