@@ -2,6 +2,16 @@
 import { useState, useMemo } from 'react';
 import { THEME, LEADERBOARD_CONTAINER_HEIGHT } from '../lib/theme';
 
+// Layout constants - single source of truth
+const LAYOUT = {
+  PADDING: 16,              // Padding inside dark background
+  LINE_X: 60,               // X position of vertical line
+  DOT_AREA_WIDTH: 60,       // Width for dots (left of line)
+  LABEL_AREA_WIDTH: 40,     // Width for +N labels (right of line)
+  NAME_AREA_WIDTH: 140,     // Width for player names (reduced - only show 1st and last)
+  VERTICAL_PADDING: 20,     // Top and bottom padding for dots
+};
+
 function LeaderboardDotPlot({
   enhancedResults,
   prevScoreMap,
@@ -10,12 +20,12 @@ function LeaderboardDotPlot({
 }) {
   const [hoveredCluster, setHoveredCluster] = useState(null);
 
-  const PADDING = 16; // Padding inside dark background
-  const CONTAINER_HEIGHT = 312; // Match the leaderboard's minHeight
-  // Calculate plot height: total container height minus padding (16*2)
-  const PLOT_HEIGHT = CONTAINER_HEIGHT - (PADDING * 2);
-  const LINE_X = 60; // X position of vertical line
-  const PLOT_WIDTH = 120; // Width of plot area
+  // Use theme constant for container height
+  const CONTAINER_HEIGHT = LEADERBOARD_CONTAINER_HEIGHT;
+  const PLOT_HEIGHT = CONTAINER_HEIGHT - (LAYOUT.PADDING * 2);
+
+  // Calculate total width
+  const TOTAL_WIDTH = LAYOUT.DOT_AREA_WIDTH + LAYOUT.LABEL_AREA_WIDTH + LAYOUT.NAME_AREA_WIDTH;
 
   // Group players by score to detect clusters
   const scoreClusters = useMemo(() => {
@@ -48,8 +58,8 @@ function LeaderboardDotPlot({
   const getYPosition = (score) => {
     if (scoreRange === 0) return PLOT_HEIGHT / 2;
     const proportion = (score - minScore) / scoreRange;
-    // Add 20px padding top and bottom
-    return 20 + (proportion * (PLOT_HEIGHT - 40));
+    // Add vertical padding top and bottom
+    return LAYOUT.VERTICAL_PADDING + (proportion * (PLOT_HEIGHT - (LAYOUT.VERTICAL_PADDING * 2)));
   };
 
   const handleDotClick = (player) => {
@@ -60,16 +70,23 @@ function LeaderboardDotPlot({
 
   return (
     <div className="flex gap-0 relative">
-      {/* Dark background plot area */}
-      <div className={`${THEME.colors.darkBlue} rounded-lg shadow-lg relative z-0`} style={{ padding: `${PADDING}px`, height: `${CONTAINER_HEIGHT}px` }}>
-        <div className="relative z-0" style={{ height: `${PLOT_HEIGHT}px`, width: `${PLOT_WIDTH}px` }}>
+      {/* Dark background plot area - contains dots, labels, and names */}
+      <div
+        className={`${THEME.colors.darkBlue} rounded-lg shadow-lg relative z-0`}
+        style={{
+          padding: `${LAYOUT.PADDING}px`,
+          height: `${CONTAINER_HEIGHT}px`,
+          width: `${TOTAL_WIDTH + (LAYOUT.PADDING * 2)}px`
+        }}
+      >
+        <div className="relative z-0" style={{ height: `${PLOT_HEIGHT}px`, width: `${TOTAL_WIDTH}px` }}>
           {/* Vertical scale line */}
           <div
             className="absolute w-px bg-gray-600"
             style={{
-              left: `${LINE_X}px`,
-              top: '20px',
-              height: `${PLOT_HEIGHT - 40}px`
+              left: `${LAYOUT.LINE_X}px`,
+              top: `${LAYOUT.VERTICAL_PADDING}px`,
+              height: `${PLOT_HEIGHT - (LAYOUT.VERTICAL_PADDING * 2)}px`
             }}
           />
 
@@ -87,12 +104,14 @@ function LeaderboardDotPlot({
                 key={score}
                 onMouseEnter={() => setHoveredCluster(score)}
                 onMouseLeave={() => setHoveredCluster(null)}
+                className="relative"
+                style={{ zIndex: hoveredCluster === score ? 10000 : 'auto' }}
               >
                 {/* Delta label on RIGHT of line - show for ALL scores */}
                 <div
                   className="absolute text-xs text-gray-400 font-mono"
                   style={{
-                    left: `${LINE_X + 8}px`,
+                    left: `${LAYOUT.LINE_X + 8}px`,
                     top: `${yPos}px`,
                     transform: 'translateY(-50%)'
                   }}
@@ -105,7 +124,7 @@ function LeaderboardDotPlot({
                   <div
                     className="absolute"
                     style={{
-                      left: `${LINE_X - 6}px`,
+                      left: `${LAYOUT.LINE_X - 6}px`,
                       top: `${yPos}px`,
                       transform: 'translateY(-50%)'
                     }}
@@ -113,14 +132,13 @@ function LeaderboardDotPlot({
                     <div className="w-3 h-px bg-gray-500" title="🤖 Group Consensus" />
                   </div>
                 ) : (
-                  /* Regular player dots - RIGHTMOST DOT MUST BE ON LINE, dots extend LEFT */
+                  /* Regular player dots - RIGHTMOST DOT IS ON THE LINE at LINE_X */
                   <div
                     className="absolute flex items-center gap-1"
                     style={{
-                      right: `${PLOT_WIDTH - LINE_X}px`,
+                      left: `${LAYOUT.LINE_X - (nonConsensusPlayers.length * 12) + 2}px`, // 10px dot + 2px gap, rightmost at LINE_X
                       top: `${yPos}px`,
-                      transform: 'translateY(-50%)',
-                      flexDirection: 'row-reverse'
+                      transform: 'translateY(-50%)'
                     }}
                   >
                     {nonConsensusPlayers.map((player, idx) => {
@@ -146,10 +164,11 @@ function LeaderboardDotPlot({
                 {/* Hover tooltip */}
                 {hoveredCluster === score && (
                   <div
-                    className="absolute bg-gray-800 border border-gray-600 rounded px-3 py-2 text-xs whitespace-nowrap z-50"
+                    className="fixed bg-gray-800 border border-gray-600 rounded px-3 py-2 text-xs whitespace-nowrap shadow-2xl"
                     style={{
-                      left: '8px',
-                      top: `${yPos + 12}px`
+                      left: '400px',
+                      top: `${yPos + LAYOUT.PADDING + 100}px`,
+                      zIndex: 10000
                     }}
                   >
                     <div className="text-white font-bold mb-2">
@@ -187,77 +206,75 @@ function LeaderboardDotPlot({
               </div>
             );
           })}
-        </div>
-      </div>
 
-      {/* Connecting lines layer - ABOVE dark background with high z-index */}
-      <div className="absolute z-20" style={{
-        left: `${PLOT_WIDTH + PADDING * 2}px`,
-        top: `${PADDING}px`,
-        height: `${PLOT_HEIGHT}px`,
-        width: '20px'
-      }}>
-        {sortedScores.map((score) => {
-          const players = scoreClusters[score];
-          const yPos = getYPosition(score);
-          const nonConsensusPlayers = players.filter(p => !p.isConsensus);
-          const hasConsensus = players.some(p => p.isConsensus);
+          {/* Connecting lines - short tick marks from Y-axis */}
+          {sortedScores.map((score) => {
+            const players = scoreClusters[score];
+            const yPos = getYPosition(score);
+            const nonConsensusPlayers = players.filter(p => !p.isConsensus);
+            const hasConsensus = players.some(p => p.isConsensus);
 
-          // Skip if only consensus
-          if (hasConsensus && nonConsensusPlayers.length === 0) {
-            return null;
-          }
+            // Skip if only consensus
+            if (hasConsensus && nonConsensusPlayers.length === 0) {
+              return null;
+            }
 
-          return (
-            <div
-              key={`line-${score}`}
-              className="absolute left-0 w-full h-px bg-gray-600"
-              style={{
-                top: `${yPos}px`
-              }}
-            />
-          );
-        })}
-      </div>
+            return (
+              <div
+                key={`line-${score}`}
+                className="absolute h-px bg-gray-500"
+                style={{
+                  left: `${LAYOUT.LINE_X}px`,
+                  top: `${yPos}px`,
+                  width: `${LAYOUT.LABEL_AREA_WIDTH - 10}px`
+                }}
+              />
+            );
+          })}
 
-      {/* Names area (outside dark background) - ALIGNED WITH LINES */}
-      <div className="relative z-10" style={{ height: `${CONTAINER_HEIGHT}px`, width: '220px', paddingTop: `${PADDING}px`, paddingBottom: `${PADDING}px`, paddingLeft: '20px' }}>
-        {sortedScores.map((score) => {
-          const players = scoreClusters[score];
-          const yPos = getYPosition(score);
-          const nonConsensusPlayers = players.filter(p => !p.isConsensus);
-          const hasConsensus = players.some(p => p.isConsensus);
+          {/* Names area - only show first and last place */}
+          {sortedScores.map((score, scoreIndex) => {
+            const players = scoreClusters[score];
+            const yPos = getYPosition(score);
+            const nonConsensusPlayers = players.filter(p => !p.isConsensus);
+            const hasConsensus = players.some(p => p.isConsensus);
 
-          // Skip if only consensus
-          if (hasConsensus && nonConsensusPlayers.length === 0) {
-            return null;
-          }
+            // Skip if only consensus
+            if (hasConsensus && nonConsensusPlayers.length === 0) {
+              return null;
+            }
 
-          const namesList = nonConsensusPlayers.map(p => {
-            if (p.position === 1) return `👑 ${p.name}`;
-            return p.name;
-          }).join(', ');
+            // Only show names for first score (leader) and last score
+            const isFirstScore = scoreIndex === 0;
+            const isLastScore = scoreIndex === sortedScores.length - 1;
 
-          return (
-            <div
-              key={score}
-              className="absolute flex items-center"
-              style={{
-                left: '20px',
-                top: `${yPos}px`,
-                height: '1px',
-                lineHeight: '1px'
-              }}
-            >
-              {/* Player names - VERTICALLY CENTERED ON THE LINE */}
-              <div className="text-xs text-gray-300 whitespace-nowrap pl-1" style={{
-                transform: 'translateY(-50%)'
-              }}>
-                {namesList}
+            if (!isFirstScore && !isLastScore) {
+              return null; // Names shown on hover instead
+            }
+
+            const namesList = nonConsensusPlayers.map(p => {
+              if (p.position === 1) return `👑 ${p.name}`;
+              return p.name;
+            }).join(', ');
+
+            return (
+              <div
+                key={`name-${score}`}
+                className="absolute"
+                style={{
+                  left: `${LAYOUT.LINE_X + LAYOUT.LABEL_AREA_WIDTH}px`,
+                  top: `${yPos}px`,
+                  transform: 'translateY(-50%)',
+                  lineHeight: '1'
+                }}
+              >
+                <div className="text-xs text-gray-300 whitespace-nowrap pl-2" style={{ lineHeight: '1' }}>
+                  {namesList}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

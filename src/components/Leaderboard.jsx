@@ -24,7 +24,10 @@ const Leaderboard = React.memo(function Leaderboard({
 
   return (
     <div className="flex justify-center mb-4">
-      <div className="bg-gray-900 rounded-lg shadow-lg p-3 w-full max-w-[95vw] sm:max-w-[450px]" style={{ minHeight: '312px' }}>
+      <div
+        className="bg-gray-900 rounded-lg shadow-lg p-3 w-full max-w-[95vw] sm:max-w-[450px]"
+        style={{ height: `${LEADERBOARD_CONTAINER_HEIGHT}px` }}
+      >
         {/* Compact Title */}
         <div className="text-center mb-2">
           <h3 className="text-base font-bold text-white mb-0.5">
@@ -182,16 +185,6 @@ const Leaderboard = React.memo(function Leaderboard({
 
             return allSections;
           })()}
-        </div>
-
-        {/* Compact hide button */}
-        <div className="text-center mt-2">
-          <button
-            onClick={onToggleLeaderboard}
-            className="bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-md transition-colors text-xs px-3 py-1"
-          >
-            HIDE 🏆
-          </button>
         </div>
       </div>
     </div>
