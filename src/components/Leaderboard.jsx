@@ -5,23 +5,8 @@ import { THEME, LEADERBOARD_CONTAINER_HEIGHT } from '../lib/theme';
 const Leaderboard = React.memo(function Leaderboard({
   enhancedResults,
   selectedGroup,
-  currentMatchweek,
-  showLeaderboard,
-  onToggleLeaderboard
+  currentMatchweek
 }) {
-  if (!showLeaderboard) {
-    return (
-      <div className="flex justify-center mb-6">
-        <button
-          onClick={onToggleLeaderboard}
-          className={`${THEME.colors.lightBlue} hover:bg-gray-700 text-white ${THEME.fontStyles.buttonWeight} rounded-md transition-colors ${THEME.fontSizes.button} ${THEME.controls.padding}`}
-        >
-          SHOW 🏆
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="flex justify-center mb-4">
       <div

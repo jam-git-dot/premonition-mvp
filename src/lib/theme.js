@@ -35,6 +35,14 @@ export const THEME = {
     firstPlace: 'bg-green-600',
     topFour: 'bg-green-400',
     bottomThree: 'bg-red-500'
+  },
+  prominentButton: {
+    base: 'w-full max-w-[450px] bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-4 px-6 rounded-lg shadow-lg transition-all transform flex items-center justify-center gap-3',
+    hover: 'hover:from-blue-700 hover:to-purple-700 hover:scale-[1.02]',
+    text: {
+      main: 'text-lg',
+      subtitle: 'text-sm font-normal opacity-90'
+    }
   }
 };
 

@@ -9,16 +9,18 @@ import ResultsTable from './ResultsTable';
 import LiveTableSection from './LiveTableSection';
 import WeekComparisonModal from './WeekComparisonModal';
 import LeaderboardDotPlot from './LeaderboardDotPlot';
+import ProminentButton from './ProminentButton';
 
 function CompetitionDashboard() {
   const [selectedGroup, setSelectedGroup] = useState('all');
   const [showScoringModal, setShowScoringModal] = useState(false);
   const [activeUser, setActiveUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
-  const [showLeaderboard, setShowLeaderboard] = useState(true);
   const [selectedMatchweek, setSelectedMatchweek] = useState(latestMatchweek);
   const [cellPopupInfo, setCellPopupInfo] = useState(null);
   const [showComparisonModal, setShowComparisonModal] = useState(false);
+  const [showGlobalStandings, setShowGlobalStandings] = useState(false);
+  const [showConsensusTable, setShowConsensusTable] = useState(false);
 
   const currentMatchweek = selectedMatchweek;
 
@@ -79,10 +81,6 @@ function CompetitionDashboard() {
     });
   };
 
-  const handleToggleLeaderboard = () => {
-    setShowLeaderboard(!showLeaderboard);
-  };
-
   return (
     <div className="min-h-screen bg-gray-800 py-8 px-4">
       <div className="max-w-7xl mx-auto">
@@ -131,87 +129,91 @@ function CompetitionDashboard() {
           </div>
         </div>
 
-        {/* Controls: GW selector, comparison button, hide leaderboard - MOVED ABOVE LEADERBOARD */}
-        <div className="flex justify-center mb-6">
-          <div className={`${THEME.colors.darkBlue} rounded-lg shadow-lg p-3 max-w-[450px] w-full`}>
-            <div className="flex justify-center items-center space-x-2">
-              {/* GW dropdown */}
-              <select
-                value={selectedMatchweek}
-                onChange={e => setSelectedMatchweek(Number(e.target.value))}
-                className={`${THEME.colors.lightBlue} hover:bg-gray-700 text-white ${THEME.fontStyles.buttonWeight} rounded-md transition-colors ${THEME.fontSizes.button} ${THEME.controls.padding}`}
-              >
-                {availableMatchweeks.map(wk => (
-                  <option key={wk} value={wk}>GW{wk}</option>
-                ))}
-              </select>
-              {/* Week comparison button */}
-              {selectedMatchweek > 1 && (
-                <button
-                  onClick={() => setShowComparisonModal(true)}
-                  className={`${THEME.colors.lightBlue} hover:bg-gray-700 text-white ${THEME.fontStyles.buttonWeight} rounded-md transition-colors ${THEME.fontSizes.button} ${THEME.controls.padding} flex items-center gap-1`}
-                  title="View week-over-week changes"
-                >
-                  <span className="text-lg">Δ</span>
-                  <span className="text-lg">📊</span>
-                </button>
-              )}
-              {/* Hide leaderboard */}
-              <button
-                onClick={handleToggleLeaderboard}
-                className={`${THEME.colors.lightBlue} hover:bg-gray-700 text-white ${THEME.fontStyles.buttonWeight} rounded-md transition-colors ${THEME.fontSizes.button} ${THEME.controls.padding}`}
-              >{showLeaderboard ? 'HIDE 🏆' : 'SHOW 🏆'}</button>
-            </div>
+        {/* Prediction Standings - Main Competition Table */}
+        <div className="mb-8">
+          <div className="flex justify-center mb-4">
+            <button
+              onClick={() => setShowGlobalStandings(!showGlobalStandings)}
+              className="w-full max-w-[600px] bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white font-bold py-6 px-8 rounded-xl shadow-2xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-4 border-2 border-emerald-400/50"
+            >
+              <span className="text-4xl">{showGlobalStandings ? "📊" : "🎯"}</span>
+              <div className="flex flex-col items-start">
+                <span className="text-xl">
+                  {showGlobalStandings ? "Hide Prediction Standings" : "Show Prediction Standings"}
+                </span>
+                <span className="text-sm font-normal opacity-90">
+                  {showGlobalStandings ? "Click to collapse" : "See who's winning the competition"}
+                </span>
+              </div>
+              <span className="text-3xl">{showGlobalStandings ? "▲" : "▼"}</span>
+            </button>
           </div>
-        </div>
 
-        {/* Leaderboard and Dot Plot Side by Side */}
-        {showLeaderboard ? (
-          <div className="flex justify-center gap-4 mb-4 flex-wrap lg:flex-nowrap">
-            {/* Leaderboard Component */}
-            <div className="flex-shrink-0">
-              <Leaderboard
+          {/* Collapsible Global Standings */}
+          {showGlobalStandings && (
+            <div className="border-4 border-emerald-500/30 rounded-lg p-4 bg-gray-900/50">
+              <ResultsTable
                 enhancedResults={enhancedResults}
-                selectedGroup={selectedGroup}
-                currentMatchweek={currentMatchweek}
-                showLeaderboard={showLeaderboard}
-                onToggleLeaderboard={handleToggleLeaderboard}
-              />
-            </div>
-
-            {/* Dot Plot Visualization */}
-            <div className="flex-shrink-0 w-full lg:w-auto">
-              <LeaderboardDotPlot
-                enhancedResults={enhancedResults}
-                prevScoreMap={prevScoreMap}
-                prevPosMap={prevPosMap}
+                teamsInOrder={teamsInOrder}
+                onCellClick={handleCellClick}
                 onNameClick={handleNameClick}
               />
             </div>
-          </div>
-        ) : (
-          <Leaderboard
-            enhancedResults={enhancedResults}
-            selectedGroup={selectedGroup}
-            currentMatchweek={currentMatchweek}
-            showLeaderboard={showLeaderboard}
-            onToggleLeaderboard={handleToggleLeaderboard}
+          )}
+        </div>
+
+        {/* Group Average Predictions */}
+        <div className="mb-6">
+          <ProminentButton
+            onClick={() => setShowConsensusTable(!showConsensusTable)}
+            mainText={showConsensusTable ? "Hide Group Average" : "Show Group Average"}
+            subtitleText={showConsensusTable ? "Click to collapse" : `View the ${selectedGroup === 'all' ? 'collective' : selectedGroup} average prediction vs reality`}
+            endIcon={showConsensusTable ? "▲" : "▼"}
+          />
+
+          {/* Collapsible Consensus Table */}
+          {showConsensusTable && (
+            <div className="mt-4">
+              <LiveTableSection
+                groupData={groupData}
+                teamsInOrder={teamsInOrder}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Week-Over-Week Comparison Button */}
+        {selectedMatchweek > 1 && (
+          <ProminentButton
+            onClick={() => setShowComparisonModal(true)}
+            icon="📊"
+            mainText="Week-Over-Week Comparison"
+            subtitleText={`See how rankings changed from GW${selectedMatchweek - 1} → GW${selectedMatchweek}`}
+            endIcon="→"
           />
         )}
 
-        {/* Results Table Component */}
-        <ResultsTable
-          enhancedResults={enhancedResults}
-          teamsInOrder={teamsInOrder}
-          onCellClick={handleCellClick}
-          onNameClick={handleNameClick}
-        />
-        
-        {/* Live Table Section Component */}
-        <LiveTableSection
-          groupData={groupData}
-          teamsInOrder={teamsInOrder}
-        />
+        {/* Leaderboard and Dot Plot Side by Side */}
+        <div className="flex justify-center gap-4 mb-4 flex-wrap lg:flex-nowrap">
+          {/* Leaderboard Component */}
+          <div className="flex-shrink-0">
+            <Leaderboard
+              enhancedResults={enhancedResults}
+              selectedGroup={selectedGroup}
+              currentMatchweek={currentMatchweek}
+            />
+          </div>
+
+          {/* Dot Plot Visualization */}
+          <div className="flex-shrink-0 w-full lg:w-auto">
+            <LeaderboardDotPlot
+              enhancedResults={enhancedResults}
+              prevScoreMap={prevScoreMap}
+              prevPosMap={prevPosMap}
+              onNameClick={handleNameClick}
+            />
+          </div>
+        </div>
 
         {/* Scoring Modal */}
         {showScoringModal && (
@@ -256,25 +258,48 @@ function CompetitionDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                  {realPredictions.find(p => p.name === activeUser).rankings.map((teamName, i) => {
+                  {(() => {
+                    const userPrediction = realPredictions.find(p => p.name === activeUser);
+                    if (!userPrediction) {
+                      return (
+                        <tr>
+                          <td colSpan="3" className="p-4 text-center text-gray-400">
+                            No prediction data found for {activeUser}
+                          </td>
+                        </tr>
+                      );
+                    }
+
                     const userResult = competitionResults.find(r => r.name === activeUser);
-                    const data = userResult.teamScores[teamName] || {};
-                    const score = data.score ?? 0;
-                    const delta = data.difference ?? 0;
-                    const displayDelta = delta > 0 ? `+${delta}` : `${delta}`;
-                    const actualPos = data.actualPosition;
-                    return (
-                      <tr key={teamName} className={i % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700'}>
-                        <td className="p-2 font-bold text-base">{i + 1}</td>
-                        <td className="p-2 font-bold text-base">
-                          {teamName} <span className="italic text-sm">({actualPos}{getOrdinalSuffix(actualPos)})</span>
-                        </td>
-                        <td className="p-2 text-center">
-                          <div className={`w-[35px] mx-auto rounded text-base font-bold ${getCellStyle(score)}`}>{displayDelta}</div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                    if (!userResult) {
+                      return (
+                        <tr>
+                          <td colSpan="3" className="p-4 text-center text-gray-400">
+                            No results found for {activeUser}
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    return userPrediction.rankings.map((teamName, i) => {
+                      const data = userResult.teamScores[teamName] || {};
+                      const score = data.score ?? 0;
+                      const delta = data.difference ?? 0;
+                      const displayDelta = delta > 0 ? `+${delta}` : `${delta}`;
+                      const actualPos = data.actualPosition;
+                      return (
+                        <tr key={teamName} className={i % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700'}>
+                          <td className="p-2 font-bold text-base">{i + 1}</td>
+                          <td className="p-2 font-bold text-base">
+                            {teamName} <span className="italic text-sm">({actualPos}{getOrdinalSuffix(actualPos)})</span>
+                          </td>
+                          <td className="p-2 text-center">
+                            <div className={`w-[35px] mx-auto rounded text-base font-bold ${getCellStyle(score)}`}>{displayDelta}</div>
+                          </td>
+                        </tr>
+                      );
+                    });
+                  })()}
                   </tbody>
                 </table>
               </div>
@@ -301,6 +326,28 @@ function CompetitionDashboard() {
           onClose={() => setShowComparisonModal(false)}
         />
       )}
+
+      {/* Gameweek Selector - Footer */}
+      <div className="mt-8">
+        <ProminentButton
+          onClick={() => {}} // Empty onClick since we'll use the select directly
+          mainText="View Standings During Other Gameweeks"
+          subtitleText={
+            <select
+              value={selectedMatchweek}
+              onChange={e => setSelectedMatchweek(Number(e.target.value))}
+              className="bg-transparent text-white font-semibold cursor-pointer outline-none border-2 border-white/30 hover:border-white/60 rounded px-2 py-1 transition-colors"
+              onClick={e => e.stopPropagation()}
+            >
+              {availableMatchweeks.map(wk => (
+                <option key={wk} value={wk} className="bg-gray-800">
+                  Gameweek {wk}
+                </option>
+              ))}
+            </select>
+          }
+        />
+      </div>
 
       {/* CSS Custom Property for Controls Width */}
       <style>{`
