@@ -1,5 +1,6 @@
 // src/components/ResultsTable.jsx
 import React from 'react';
+import PropTypes from 'prop-types';
 import { THEME, getRowTint, getCellStyle } from '../lib/theme';
 import { getTeamAbbreviation } from '../data/teamInfo';
 
@@ -130,5 +131,24 @@ const ResultsTable = React.memo(function ResultsTable({
     </div>
   );
 });
+
+ResultsTable.propTypes = {
+  enhancedResults: PropTypes.arrayOf(PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    totalScore: PropTypes.number.isRequired,
+    teamScores: PropTypes.objectOf(PropTypes.shape({
+      score: PropTypes.number.isRequired,
+      predictedPosition: PropTypes.number.isRequired,
+      actualPosition: PropTypes.number.isRequired,
+      difference: PropTypes.number.isRequired
+    })).isRequired
+  })).isRequired,
+  teamsInOrder: PropTypes.arrayOf(PropTypes.shape({
+    position: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired
+  })).isRequired,
+  onCellClick: PropTypes.func.isRequired,
+  onNameClick: PropTypes.func.isRequired
+};
 
 export default ResultsTable;

@@ -1,5 +1,6 @@
 // src/components/WeekComparisonModal.jsx
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { compareWeeks, getBiggestMovers, getBiggestImprovers, getBiggestDecliners } from '../utils/weekComparison';
 import { THEME } from '../lib/theme';
 
@@ -222,5 +223,12 @@ function WeekComparisonModal({ weekA, weekB, selectedGroup, onClose }) {
     </div>
   );
 }
+
+WeekComparisonModal.propTypes = {
+  weekA: PropTypes.number.isRequired,
+  weekB: PropTypes.number.isRequired,
+  selectedGroup: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired
+};
 
 export default WeekComparisonModal;

@@ -1,20 +1,13 @@
 // src/utils/weekComparison.js
 // Utility functions for comparing player standings between gameweeks
 
-// We'll load the scores data dynamically to avoid bundling issues
-let scoresCache = null;
+import scoresByGameweekData from '../data/scoresByGameweek.json';
+
+// Cache the imported data
+const scoresCache = scoresByGameweekData;
 
 async function loadScoresData() {
-  if (scoresCache) return scoresCache;
-
-  try {
-    const response = await fetch('/src/data/scoresByGameweek.json');
-    scoresCache = await response.json();
-    return scoresCache;
-  } catch (error) {
-    console.error('Failed to load scores data:', error);
-    return null;
-  }
+  return scoresCache;
 }
 
 /**

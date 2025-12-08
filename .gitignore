@@ -30,3 +30,6 @@ dev-tips.js
 
 # Internal spec documents (not for public repo)
 GAMEWEEK_UPDATE_SPEC.md
+
+# Claude collaboration files (private context)
+.claude/COLLABORATION_GUIDE.md

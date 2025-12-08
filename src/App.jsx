@@ -6,6 +6,7 @@ import { supabase } from './lib/supabase'
 import TeamList from './components/TeamList'
 import CompetitionDashboard from './components/CompetitionDashboard'
 import { track } from '@vercel/analytics'
+import { validateEmail, validateName, validateRankings, validateSubmission } from './utils/validation'
 
 // Modal component defined directly in this file
 function Modal({ isOpen, onClose, children }) {
@@ -62,28 +63,24 @@ function App() {
   }, [])
 
   const handleSubmit = async () => {
-    if (!userEmail.trim() || !userName.trim()) {
-      alert('Please enter both your email and name!')
-      return
+    // Prepare submission data
+    const submission = {
+      email: userEmail.trim().toLowerCase(),
+      name: userName.trim(),
+      rankings: rankings.map(team => team.name),
+      group: 'dev'
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(userEmail.trim())) {
-      alert('Please enter a valid email address!')
-      return
+    // Comprehensive validation
+    const validation = validateSubmission(submission);
+    if (!validation.valid) {
+      alert(`Validation Error:\n\n${validation.errors.join('\n')}`);
+      return;
     }
 
     setIsSubmitting(true)
 
     try {
-      const submission = {
-        email: userEmail.trim().toLowerCase(),
-        name: userName.trim(),
-        rankings: rankings.map(team => team.name),
-        group: 'dev'
-      }
-
       console.log('Submitting to Supabase:', submission)
 
       // First try to update existing prediction
