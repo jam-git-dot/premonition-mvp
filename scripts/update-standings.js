@@ -212,27 +212,36 @@ async function main() {
       return;
     }
 
-    // Check if we've missed multiple gameweeks
+    // CRITICAL: Check if we've missed ANY gameweeks - this is FATAL
     if (highestComplete > nextGameweekToSave) {
-      console.log('WARNING: Multiple gameweeks have completed since last update');
-      console.log(`Last saved: GW${lastSavedGameweek}`);
-      console.log(`Current complete: GW${highestComplete}`);
-      console.log(`Missed gameweeks: ${nextGameweekToSave} through ${highestComplete - 1}`);
-      console.log();
-      console.log('LIMITATION: Cannot reconstruct historical gameweek data.');
-      console.log('The API only returns current standings, not historical snapshots.');
-      console.log(`Will save GW${highestComplete} only and skip missed gameweeks.`);
-      console.log();
+      const error = new Error(
+        `FATAL: Missed gameweek(s) detected! Last saved: GW${lastSavedGameweek}, Current complete: GW${highestComplete}. ` +
+        `This script MUST run after EVERY single gameweek completes. Missed gameweeks: ${nextGameweekToSave} through ${highestComplete - 1}. ` +
+        `You must manually add the missing gameweek data before this script can continue.`
+      );
 
-      // Record the gap for manual backfill tracking
+      console.error('='.repeat(60));
+      console.error('CRITICAL ERROR: MISSED GAMEWEEK(S)');
+      console.error('='.repeat(60));
+      console.error(`Last saved: GW${lastSavedGameweek}`);
+      console.error(`Current complete: GW${highestComplete}`);
+      console.error(`Missed gameweeks: ${nextGameweekToSave} through ${highestComplete - 1}`);
+      console.error();
+      console.error('ACTION REQUIRED:');
+      console.error('1. Manually add the missing gameweek data to standingsByGameweek.json');
+      console.error('2. Use historical data sources or recreate from match results');
+      console.error('3. Then run this script again');
+      console.error('='.repeat(60));
+
+      // Record the gap and notify Discord
       const missedGameweeks = [];
       for (let gw = nextGameweekToSave; gw < highestComplete; gw++) {
         missedGameweeks.push(gw);
       }
       recordGap(lastSavedGameweek, highestComplete);
-
-      // Notify Discord about the gap
       await notifyGap(missedGameweeks);
+
+      throw error;
     }
 
     // We can only save the highest complete gameweek with confidence

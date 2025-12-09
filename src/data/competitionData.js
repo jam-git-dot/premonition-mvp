@@ -8,15 +8,29 @@ import standingsByGameweek from './standingsByGameweek.json' with { type: 'json'
 
 const weekNumbers = Object.keys(standingsByGameweek)
   .filter(k => /^\d+$/.test(k))
-  .map(n => parseInt(n, 10));
+  .map(n => parseInt(n, 10))
+  .sort((a, b) => a - b);
+
+// Find the highest CONSECUTIVE gameweek (no gaps allowed)
+// This ensures we only show gameweeks up to the last complete one
+let highestConsecutive = 0;
+for (let i = 1; i <= Math.max(...weekNumbers, 0); i++) {
+  if (weekNumbers.includes(i)) {
+    highestConsecutive = i;
+  } else {
+    // Gap detected - stop here
+    console.warn(`Gap detected in gameweek data: GW${i} is missing. Only showing up to GW${highestConsecutive}`);
+    break;
+  }
+}
 
 // Safety check to ensure we have valid week numbers
-const latestWeek = weekNumbers.length > 0 ? Math.max(...weekNumbers) : 1;
+const latestWeek = highestConsecutive > 0 ? highestConsecutive : 1;
 
 export const currentStandings = standingsByGameweek[latestWeek] || {};
 export const latestMatchweek = latestWeek;
-// Available matchweeks for selection
-export const availableMatchweeks = weekNumbers.sort((a, b) => a - b);
+// Available matchweeks for selection - only consecutive ones with no gaps
+export const availableMatchweeks = Array.from({ length: latestWeek }, (_, i) => i + 1);
 
 // Real predictions from your 24 friends (exact data from CSV + manual additions)
 export const realPredictions = [
