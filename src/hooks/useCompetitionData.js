@@ -13,10 +13,15 @@ import standingsByGameweek from '../data/standingsByGameweek.json';
 
 export function useCompetitionData(selectedGroup, selectedMatchweek) {
   // Get standings for the selected matchweek
-  const selectedWeekStandings = useMemo(() =>
-    standingsByGameweek[selectedMatchweek] || currentStandings,
-    [selectedMatchweek]
-  );
+  const selectedWeekStandings = useMemo(() => {
+    const standings = standingsByGameweek[selectedMatchweek] || currentStandings;
+    // Ensure we have valid standings data
+    if (!standings || typeof standings !== 'object') {
+      console.error('Invalid standings data for matchweek', selectedMatchweek);
+      return {};
+    }
+    return standings;
+  }, [selectedMatchweek]);
 
   // Memoize expensive calculations
   const groupData = useMemo(() =>

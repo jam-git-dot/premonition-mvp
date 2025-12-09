@@ -9,9 +9,11 @@ import standingsByGameweek from './standingsByGameweek.json' with { type: 'json'
 const weekNumbers = Object.keys(standingsByGameweek)
   .filter(k => /^\d+$/.test(k))
   .map(n => parseInt(n, 10));
-const latestWeek = Math.max(...weekNumbers);
 
-export const currentStandings = standingsByGameweek[latestWeek];
+// Safety check to ensure we have valid week numbers
+const latestWeek = weekNumbers.length > 0 ? Math.max(...weekNumbers) : 1;
+
+export const currentStandings = standingsByGameweek[latestWeek] || {};
 export const latestMatchweek = latestWeek;
 // Available matchweeks for selection
 export const availableMatchweeks = weekNumbers.sort((a, b) => a - b);

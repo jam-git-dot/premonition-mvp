@@ -122,7 +122,20 @@ export function createGroupConsensus(groupFilter = 'all') {
  */
 export function calculateGroupConsensusScore(groupFilter = 'all', currentStandings) {
   const consensus = createGroupConsensus(groupFilter);
-  
+
+  // Safety check for currentStandings
+  if (!currentStandings || typeof currentStandings !== 'object') {
+    console.error('Invalid currentStandings passed to calculateGroupConsensusScore:', currentStandings);
+    return {
+      name: "Group Consensus",
+      groups: [groupFilter],
+      totalScore: 0,
+      teamScores: {},
+      isConsensus: true,
+      consensusRanking: consensus
+    };
+  }
+
   // Create team position lookup from current standings
   const teamCurrentPosition = {};
   Object.entries(currentStandings).forEach(([pos, team]) => {
@@ -194,7 +207,13 @@ export function createGroupPredictionRanks(groupFilter = 'all') {
  */
 export function calculateOverUnderAchievers(groupFilter = 'all', currentStandings) {
   const groupPredictionRanks = createGroupPredictionRanks(groupFilter);
-  
+
+  // Safety check for currentStandings
+  if (!currentStandings || typeof currentStandings !== 'object') {
+    console.error('Invalid currentStandings passed to calculateOverUnderAchievers:', currentStandings);
+    return { overachievers: [], underachievers: [] };
+  }
+
   // Create team position lookup from current standings
   const teamCurrentPosition = {};
   Object.entries(currentStandings).forEach(([pos, team]) => {
