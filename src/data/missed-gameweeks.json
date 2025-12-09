@@ -1,5 +1,12 @@
 {
-  "missedGameweeks": [],
-  "lastChecked": null,
+  "missedGameweeks": [
+    {
+      "gameweek": 14,
+      "detectedAt": "2025-12-09T16:47:22.001Z",
+      "status": "needs_manual_backfill",
+      "reason": "Skipped during update. Last saved: GW13, Current complete: GW15"
+    }
+  ],
+  "lastChecked": "2025-12-09T16:47:22.001Z",
   "notes": "This file tracks gameweeks that were skipped due to automation failures or missed runs."
 }
