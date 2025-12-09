@@ -187,6 +187,12 @@ export function calculateCompetitionScores(selectedGroup = "all") {
 export function calculateCompetitionScoresForWeek(week = latestWeek, selectedGroup = 'all') {
   const standings = standingsByGameweek[week];
 
+  // Safety check for standings
+  if (!standings || typeof standings !== 'object') {
+    console.error('Invalid standings data for week', week);
+    return [];
+  }
+
   // Create team position lookup
   const teamCurrentPosition = {};
   Object.entries(standings).forEach(([pos, team]) => {
@@ -224,6 +230,10 @@ export function calculateCompetitionScoresForWeek(week = latestWeek, selectedGro
 
 // Get teams ordered by current table position
 export function getTeamsInTableOrder() {
+  if (!currentStandings || typeof currentStandings !== 'object') {
+    console.error('Invalid currentStandings in getTeamsInTableOrder');
+    return [];
+  }
   return Object.entries(currentStandings)
     .sort(([a], [b]) => parseInt(a) - parseInt(b))
     .map(([pos, team]) => ({ position: parseInt(pos), name: team }));

@@ -88,6 +88,28 @@ export async function getCurrentStandings() {
 }
 
 /**
+ * Fetches Premier League standings for a specific matchday
+ * @param {number} matchday - The matchday number (1-38)
+ * @param {number} season - The season year (e.g., 2025 for 2025-26 season)
+ * @returns {Promise<Object>} Standings data with season info and table
+ */
+export async function getStandingsForMatchday(matchday, season = null) {
+  const seasonParam = season ? `season=${season}&` : '';
+  console.log(`Fetching Premier League standings for matchday ${matchday}${season ? ` (${season} season)` : ''}...`);
+
+  const data = await makeApiRequest(`/competitions/${COMPETITION_ID}/standings?${seasonParam}matchday=${matchday}`);
+
+  if (!data.standings || data.standings.length === 0) {
+    throw new Error(`No standings data returned from API for matchday ${matchday}`);
+  }
+
+  return {
+    season: data.season,
+    standings: data.standings[0].table // Main league table
+  };
+}
+
+/**
  * Gets the number of API calls made this session
  * @returns {number} API call count
  */

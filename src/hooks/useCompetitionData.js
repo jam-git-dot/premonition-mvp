@@ -34,12 +34,16 @@ export function useCompetitionData(selectedGroup, selectedMatchweek) {
     [selectedMatchweek, selectedGroup]
   );
 
-  const prevCompetitionResults = useMemo(() =>
-    selectedMatchweek > 1
-      ? calculateCompetitionScoresForWeek(selectedMatchweek - 1, selectedGroup)
-      : [],
-    [selectedMatchweek, selectedGroup]
-  );
+  const prevCompetitionResults = useMemo(() => {
+    if (selectedMatchweek <= 1) return [];
+    // Check if previous week data exists
+    const prevWeek = selectedMatchweek - 1;
+    if (!standingsByGameweek[prevWeek]) {
+      console.warn(`No data available for week ${prevWeek}, skipping previous week comparison`);
+      return [];
+    }
+    return calculateCompetitionScoresForWeek(prevWeek, selectedGroup);
+  }, [selectedMatchweek, selectedGroup]);
 
   const teamsInOrder = useMemo(() =>
     Object.entries(selectedWeekStandings)
