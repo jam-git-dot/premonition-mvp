@@ -16,6 +16,9 @@
     "update-standings:dry-run": "node scripts/update-standings.js --dry-run",
     "manual-override": "node scripts/manual-override.js",
     "manual-override:interactive": "node scripts/manual-override.js --interactive",
+    "check-games": "node scripts/check-games-played.js",
+    "recalculate-scores": "node scripts/recalculate-scores.js",
+    "health-check": "node scripts/health-check.js",
     "test-discord": "node scripts/test-discord.js"
   },
   "dependencies": {

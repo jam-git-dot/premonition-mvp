@@ -314,34 +314,36 @@ async function main() {
         console.log('Standings file updated successfully');
 
         // Step 7: Calculate and save competition scores
+        // CRITICAL: Scores are required for week-over-week comparison to work
         console.log('\nStep 7: Calculating competition scores...');
         let playerComparisons = null;
-        try {
-          const { calculateCompetitionScoresForWeek } = await import('../src/data/competitionData.js');
-          const { compareWeeks } = await import('../compare-weeks.cjs');
 
-          // Read existing scores
-          const scoresPath = path.join(__dirname, '../src/data/scoresByGameweek.json');
-          let scoresData = {};
-          if (fs.existsSync(scoresPath)) {
-            scoresData = JSON.parse(fs.readFileSync(scoresPath, 'utf8'));
-          }
+        const { calculateCompetitionScoresForWeek } = await import('../src/data/competitionData.js');
+        const { compareWeeks } = await import('../compare-weeks.cjs');
 
-          // Calculate and save scores for the new gameweek
-          const weekScores = calculateCompetitionScoresForWeek(gameweekToSave);
-          scoresData[gameweekToSave] = weekScores;
-          scoresData.lastUpdated = new Date().toISOString();
-          fs.writeFileSync(scoresPath, JSON.stringify(scoresData, null, 2));
-          console.log(`Scores calculated and saved for GW${gameweekToSave}`);
+        // Read existing scores
+        const scoresPath = path.join(__dirname, '../src/data/scoresByGameweek.json');
+        let scoresData = {};
+        if (fs.existsSync(scoresPath)) {
+          scoresData = JSON.parse(fs.readFileSync(scoresPath, 'utf8'));
+        }
 
-          // Get player comparisons if previous week exists
-          if (gameweekToSave > 1 && scoresData[gameweekToSave - 1]) {
-            playerComparisons = compareWeeks(gameweekToSave - 1, gameweekToSave, 'all');
-            console.log('Player position changes calculated');
-          }
-        } catch (error) {
-          console.error('Warning: Could not calculate scores:', error.message);
-          // Continue anyway - scores are nice-to-have, not critical
+        // Calculate and save scores for the new gameweek
+        console.log(`Calculating scores for GW${gameweekToSave}...`);
+        const weekScores = calculateCompetitionScoresForWeek(gameweekToSave);
+        if (!weekScores || weekScores.length === 0) {
+          throw new Error(`Score calculation returned empty results for GW${gameweekToSave}`);
+        }
+
+        scoresData[gameweekToSave] = weekScores;
+        scoresData.lastUpdated = new Date().toISOString();
+        fs.writeFileSync(scoresPath, JSON.stringify(scoresData, null, 2));
+        console.log(`✅ Scores calculated and saved for GW${gameweekToSave} (${weekScores.length} players)`);
+
+        // Get player comparisons if previous week exists
+        if (gameweekToSave > 1 && scoresData[gameweekToSave - 1]) {
+          playerComparisons = compareWeeks(gameweekToSave - 1, gameweekToSave, 'all');
+          console.log('Player position changes calculated');
         }
 
         // Notify Discord of success with player comparisons and team changes
