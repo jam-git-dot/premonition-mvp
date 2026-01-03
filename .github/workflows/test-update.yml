@@ -1,0 +1,45 @@
+# Manual Test Workflow - Test standings update without committing
+#
+# Use this to test the update script and Discord notifications
+# This runs in dry-run mode and won't commit any changes
+
+name: Test Update Script (Manual)
+
+on:
+  # Only allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  test-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Run the standings update script in DRY RUN mode
+      - name: Test update script (dry run)
+        env:
+          FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: npm run update-standings:dry-run
+
+      # Step 5: Show what would have changed
+      - name: Show potential changes
+        run: |
+          echo "=== Files that would be modified ==="
+          git status --short
+          echo ""
+          echo "=== This was a dry run - no changes were committed ==="

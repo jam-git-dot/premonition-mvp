@@ -40,8 +40,8 @@ jobs:
       - name: Update standings
         env:
           FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: npm run update-standings
-        continue-on-error: true
 
       # Step 5: Check if there are changes to commit
       - name: Check for changes
@@ -56,6 +56,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add src/data/standingsByGameweek.json
+          git add src/data/scoresByGameweek.json
           git add src/data/missed-gameweeks.json
           git commit -m "Auto-update: Premier League standings $(date +'%Y-%m-%d %H:%M UTC')"
           git push
