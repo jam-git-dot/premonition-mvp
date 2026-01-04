@@ -34,3 +34,4 @@ GAMEWEEK_UPDATE_SPEC.md
 # Claude collaboration files (private context)
 .claude/COLLABORATION_GUIDE.md
 .claude/settings.local.json
+.claude
