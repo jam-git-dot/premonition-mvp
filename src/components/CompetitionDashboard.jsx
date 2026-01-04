@@ -21,8 +21,18 @@ function CompetitionDashboard() {
   const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [showGlobalStandings, setShowGlobalStandings] = useState(false);
   const [showConsensusTable, setShowConsensusTable] = useState(false);
+  const [hoveredButton, setHoveredButton] = useState(null);
 
   const currentMatchweek = selectedMatchweek;
+
+  // Button descriptions for hover state
+  const buttonDescriptions = {
+    groupTable: "Full prediction standings table for all players",
+    summary: "Group average prediction vs actual standings",
+    bigMovers: selectedMatchweek > 1
+      ? `See who moved up or down from GW${selectedMatchweek - 1} → GW${selectedMatchweek}`
+      : "Available after Gameweek 1"
+  };
 
   // Use our custom hook for all competition data
   const {
@@ -103,7 +113,7 @@ function CompetitionDashboard() {
         </div>
 
         {/* Compact Centered Controls */}
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-2">
           <div className={`${THEME.colors.darkBlue} rounded-lg shadow-lg p-3 inline-block max-w-[450px]`}>
             {/* Group Filter Toggle */}
             <div className="flex justify-center">
@@ -129,69 +139,72 @@ function CompetitionDashboard() {
           </div>
         </div>
 
-        {/* Prediction Standings - Main Competition Table */}
-        <div className="mb-8">
-          <div className="flex justify-center mb-4">
-            <button
-              onClick={() => setShowGlobalStandings(!showGlobalStandings)}
-              className="w-full max-w-[600px] bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white font-bold py-6 px-8 rounded-xl shadow-2xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-4 border-2 border-emerald-400/50"
-            >
-              <span className="text-4xl">{showGlobalStandings ? "📊" : "🎯"}</span>
-              <div className="flex flex-col items-start">
-                <span className="text-xl">
-                  {showGlobalStandings ? "Hide Prediction Standings" : "Show Prediction Standings"}
-                </span>
-                <span className="text-sm font-normal opacity-90">
-                  {showGlobalStandings ? "Click to collapse" : "See who's winning the competition"}
-                </span>
+        {/* Section Toggle Buttons */}
+        <div className="flex justify-center mb-1">
+          <div className={`${THEME.colors.darkBlue} rounded-lg shadow-lg p-3 inline-block max-w-[450px]`}>
+            <div className="flex justify-center">
+              <div className={`${THEME.colors.lightBlue} rounded-lg p-1 flex`}>
+                {/* GROUP TABLE Button */}
+                <button
+                  onClick={() => {
+                    setShowGlobalStandings(!showGlobalStandings);
+                    setShowConsensusTable(false);
+                  }}
+                  onMouseEnter={() => setHoveredButton('groupTable')}
+                  onMouseLeave={() => setHoveredButton(null)}
+                  className={`px-4 py-2 rounded-md ${THEME.fontStyles.buttonWeight} transition-colors ${THEME.fontSizes.button} ${
+                    showGlobalStandings
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-gray-300 hover:text-white'
+                  }`}
+                >
+                  GROUP TABLE
+                </button>
+
+                {/* SUMMARY Button */}
+                <button
+                  onClick={() => {
+                    setShowConsensusTable(!showConsensusTable);
+                    setShowGlobalStandings(false);
+                  }}
+                  onMouseEnter={() => setHoveredButton('summary')}
+                  onMouseLeave={() => setHoveredButton(null)}
+                  className={`px-4 py-2 rounded-md ${THEME.fontStyles.buttonWeight} transition-colors ${THEME.fontSizes.button} ${
+                    showConsensusTable
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-gray-300 hover:text-white'
+                  }`}
+                >
+                  SUMMARY
+                </button>
+
+                {/* BIG MOVERS Button */}
+                <button
+                  onClick={() => selectedMatchweek > 1 && setShowComparisonModal(true)}
+                  onMouseEnter={() => setHoveredButton('bigMovers')}
+                  onMouseLeave={() => setHoveredButton(null)}
+                  className={`px-4 py-2 rounded-md ${THEME.fontStyles.buttonWeight} transition-colors ${THEME.fontSizes.button} ${
+                    selectedMatchweek <= 1
+                      ? 'text-gray-500 cursor-not-allowed'
+                      : 'text-gray-300 hover:text-white'
+                  }`}
+                  disabled={selectedMatchweek <= 1}
+                >
+                  BIG MOVERS
+                </button>
               </div>
-              <span className="text-3xl">{showGlobalStandings ? "▲" : "▼"}</span>
-            </button>
+            </div>
           </div>
-
-          {/* Collapsible Global Standings */}
-          {showGlobalStandings && (
-            <div className="border-4 border-emerald-500/30 rounded-lg p-4 bg-gray-900/50">
-              <ResultsTable
-                enhancedResults={enhancedResults}
-                teamsInOrder={teamsInOrder}
-                onCellClick={handleCellClick}
-                onNameClick={handleNameClick}
-              />
-            </div>
-          )}
         </div>
 
-        {/* Group Average Predictions */}
-        <div className="mb-6">
-          <ProminentButton
-            onClick={() => setShowConsensusTable(!showConsensusTable)}
-            mainText={showConsensusTable ? "Hide Group Average" : "Show Group Average"}
-            subtitleText={showConsensusTable ? "Click to collapse" : `View the ${selectedGroup === 'all' ? 'collective' : selectedGroup} average prediction vs reality`}
-            endIcon={showConsensusTable ? "▲" : "▼"}
-          />
-
-          {/* Collapsible Consensus Table */}
-          {showConsensusTable && (
-            <div className="mt-4">
-              <LiveTableSection
-                groupData={groupData}
-                teamsInOrder={teamsInOrder}
-              />
-            </div>
-          )}
+        {/* Hover Description Area - Outside the dark container */}
+        <div className="flex justify-center mb-4">
+          <div className="h-5 text-center max-w-[450px]">
+            <span className={`${THEME.fontSizes.button} text-gray-400 transition-opacity ${hoveredButton ? 'opacity-100' : 'opacity-0'}`}>
+              {hoveredButton ? buttonDescriptions[hoveredButton] : ''}
+            </span>
+          </div>
         </div>
-
-        {/* Week-Over-Week Comparison Button */}
-        {selectedMatchweek > 1 && (
-          <ProminentButton
-            onClick={() => setShowComparisonModal(true)}
-            icon="📊"
-            mainText="Week-Over-Week Comparison"
-            subtitleText={`See how rankings changed from GW${selectedMatchweek - 1} → GW${selectedMatchweek}`}
-            endIcon="→"
-          />
-        )}
 
         {/* Leaderboard and Dot Plot Side by Side */}
         <div className="flex justify-center gap-4 mb-4 flex-wrap lg:flex-nowrap">
@@ -214,6 +227,27 @@ function CompetitionDashboard() {
             />
           </div>
         </div>
+
+        {/* Expanded Content Area */}
+        {showGlobalStandings && (
+          <div className="mb-6 border-2 border-blue-500/30 rounded-lg p-4 bg-gray-900/50">
+            <ResultsTable
+              enhancedResults={enhancedResults}
+              teamsInOrder={teamsInOrder}
+              onCellClick={handleCellClick}
+              onNameClick={handleNameClick}
+            />
+          </div>
+        )}
+
+        {showConsensusTable && (
+          <div className="mb-6">
+            <LiveTableSection
+              groupData={groupData}
+              teamsInOrder={teamsInOrder}
+            />
+          </div>
+        )}
 
         {/* Scoring Modal */}
         {showScoringModal && (
