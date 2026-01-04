@@ -35,3 +35,17 @@ GAMEWEEK_UPDATE_SPEC.md
 .claude/COLLABORATION_GUIDE.md
 .claude/settings.local.json
 .claude
+
+# Health check runtime state (changes frequently)
+.health-check-state.json
+
+# Local test and debug scripts
+scripts/test-*.js
+scripts/check-games-played.js
+scripts/test-edge-cases.md
+
+# Local validation utilities
+validate-standings.js
+
+# Backup files from manual overrides
+backups/
