@@ -17,7 +17,6 @@ export function useCompetitionData(selectedGroup, selectedMatchweek) {
     const standings = standingsByGameweek[selectedMatchweek] || currentStandings;
     // Ensure we have valid standings data
     if (!standings || typeof standings !== 'object') {
-      console.error('Invalid standings data for matchweek', selectedMatchweek);
       return {};
     }
     return standings;
@@ -34,7 +33,6 @@ export function useCompetitionData(selectedGroup, selectedMatchweek) {
   const competitionResults = useMemo(() => {
     const weekScores = scoresByGameweek[selectedMatchweek];
     if (!weekScores || !Array.isArray(weekScores)) {
-      console.error(`No scores found for GW${selectedMatchweek} in scoresByGameweek.json`);
       return [];
     }
 
@@ -54,7 +52,6 @@ export function useCompetitionData(selectedGroup, selectedMatchweek) {
     const prevWeekScores = scoresByGameweek[prevWeek];
 
     if (!prevWeekScores || !Array.isArray(prevWeekScores)) {
-      console.warn(`No scores found for GW${prevWeek} in scoresByGameweek.json`);
       return [];
     }
 

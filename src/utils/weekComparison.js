@@ -20,13 +20,7 @@ async function loadScoresData() {
 export async function compareWeeks(weekA, weekB, groupFilter = 'all') {
   const scoresData = await loadScoresData();
 
-  console.log('Comparing weeks:', weekA, 'to', weekB);
-  console.log('Available data:', Object.keys(scoresData || {}).filter(k => !isNaN(k)));
-  console.log('Has weekA data:', !!scoresData?.[weekA]);
-  console.log('Has weekB data:', !!scoresData?.[weekB]);
-
   if (!scoresData || !scoresData[weekA] || !scoresData[weekB]) {
-    console.error('Missing data for comparison', { weekA, weekB, hasWeekA: !!scoresData?.[weekA], hasWeekB: !!scoresData?.[weekB] });
     return null;
   }
 

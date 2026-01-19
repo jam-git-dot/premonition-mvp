@@ -19,7 +19,6 @@ for (let i = 1; i <= Math.max(...weekNumbers, 0); i++) {
     highestConsecutive = i;
   } else {
     // Gap detected - stop here
-    console.warn(`Gap detected in gameweek data: GW${i} is missing. Only showing up to GW${highestConsecutive}`);
     break;
   }
 }
@@ -203,7 +202,6 @@ export function calculateCompetitionScoresForWeek(week = latestWeek, selectedGro
 
   // Safety check for standings
   if (!standings || typeof standings !== 'object') {
-    console.error('Invalid standings data for week', week);
     return [];
   }
 
@@ -245,7 +243,6 @@ export function calculateCompetitionScoresForWeek(week = latestWeek, selectedGro
 // Get teams ordered by current table position
 export function getTeamsInTableOrder() {
   if (!currentStandings || typeof currentStandings !== 'object') {
-    console.error('Invalid currentStandings in getTeamsInTableOrder');
     return [];
   }
   return Object.entries(currentStandings)

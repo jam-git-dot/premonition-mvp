@@ -2,6 +2,7 @@
 // Processes raw predictions into group statistics and consensus data
 
 import { realPredictions } from './competitionData.js';
+import { getTeamAbbreviation } from './teamInfo.js';
 
 // All Premier League teams in alphabetical order
 const ALL_TEAMS = [
@@ -125,7 +126,6 @@ export function calculateGroupConsensusScore(groupFilter = 'all', currentStandin
 
   // Safety check for currentStandings
   if (!currentStandings || typeof currentStandings !== 'object') {
-    console.error('Invalid currentStandings passed to calculateGroupConsensusScore:', currentStandings);
     return {
       name: "Group Consensus",
       groups: [groupFilter],
@@ -210,7 +210,6 @@ export function calculateOverUnderAchievers(groupFilter = 'all', currentStanding
 
   // Safety check for currentStandings
   if (!currentStandings || typeof currentStandings !== 'object') {
-    console.error('Invalid currentStandings passed to calculateOverUnderAchievers:', currentStandings);
     return { overachievers: [], underachievers: [] };
   }
 
@@ -251,37 +250,6 @@ export function calculateOverUnderAchievers(groupFilter = 'all', currentStanding
     .slice(0, 5);
 
   return { overachievers, underachievers };
-}
-
-/**
- * Get team abbreviation
- * @param {string} teamName - Full team name
- * @returns {string} Three-letter abbreviation
- */
-export function getTeamAbbreviation(teamName) {
-  const abbreviations = {
-    'Liverpool': 'LIV',
-    'Arsenal': 'ARS', 
-    'Tottenham Hotspur': 'TOT',
-    'AFC Bournemouth': 'BOU',
-    'Chelsea': 'CHE',
-    'Everton': 'EVE',
-    'Sunderland': 'SUN',
-    'Manchester City': 'MCI',
-    'Crystal Palace': 'CRY',
-    'Newcastle United': 'NEW',
-    'Fulham': 'FUL',
-    'Brentford': 'BRE',
-    'Brighton & Hove Albion': 'BRI',
-    'Manchester United': 'MUN',
-    'Nottingham Forest': 'NFO',
-    'Leeds United': 'LEE',
-    'Burnley': 'BUR',
-    'West Ham United': 'WHU',
-    'Aston Villa': 'AVL',
-    'Wolverhampton Wanderers': 'WOL'
-  };
-  return abbreviations[teamName] || teamName.substring(0, 3).toUpperCase();
 }
 
 /**

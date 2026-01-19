@@ -34,11 +34,9 @@ function App() {
       .then(res => res.json())
       .then(data => {
         setVersion(data.version)
-        console.log('App Version:', data.version, 'Built:', data.buildTime)
       })
       .catch(() => {
         setVersion('dev')
-        console.log('App Version: dev mode')
       })
   }, [])
 
@@ -59,7 +57,6 @@ function App() {
     setIsSubmitting(true)
 
     try {
-      console.log('Submitting to Supabase:', submission)
 
       const { data: existingData } = await supabase
         .from('predictions')
@@ -91,8 +88,6 @@ function App() {
         throw result.error
       }
 
-      console.log(`Successfully ${isUpdate ? 'updated' : 'saved'}:`, result.data)
-
       track('prediction_submitted', {
         group: 'dev',
         teams_count: rankings.length,
@@ -107,8 +102,6 @@ function App() {
       })
 
     } catch (error) {
-      console.error('Error saving prediction:', error)
-
       track('prediction_failed', {
         group: 'dev',
         error: error.message

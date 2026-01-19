@@ -84,6 +84,7 @@ function CompetitionDashboard() {
     const userResult = competitionResults.find(r => r.name === userName);
     if (!userResult) return;
     const teamData = userResult.teamScores[teamName];
+    if (!teamData) return;
     const stats = groupData.statistics[teamName] || {};
 
     const allPredictions = realPredictions.map(p => {

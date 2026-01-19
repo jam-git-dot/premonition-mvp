@@ -1,7 +1,7 @@
 // src/components/ResultsTable.jsx
 import React from 'react';
 import PropTypes from 'prop-types';
-import { THEME, getRowTint, getCellStyle } from '../lib/theme';
+import { THEME, getRowTint, getCellStyle, getOrdinalSuffix } from '../lib/theme';
 import { getTeamAbbreviation } from '../data/teamInfo';
 
 const ResultsTable = React.memo(function ResultsTable({
@@ -17,16 +17,6 @@ const ResultsTable = React.memo(function ResultsTable({
     const teamAbbr = getTeamAbbreviation(teamName);
     const details = `P: ${teamAbbr} ${teamData.predictedPosition}${getOrdinalSuffix(teamData.predictedPosition)}`;
     return { score, details };
-  };
-
-  // Helper function to get ordinal suffix (1st, 2nd, 3rd, 4th, etc.)
-  const getOrdinalSuffix = (num) => {
-    const j = num % 10;
-    const k = num % 100;
-    if (j === 1 && k !== 11) return 'st';
-    if (j === 2 && k !== 12) return 'nd';
-    if (j === 3 && k !== 13) return 'rd';
-    return 'th';
   };
 
   return (
