@@ -4,11 +4,11 @@ import { availableGroups, latestMatchweek, availableMatchweeks, realPredictions 
 import { getCellStyle, getOrdinalSuffix } from '../lib/theme';
 import { useCompetitionData } from '../hooks/useCompetitionData';
 import { Button } from '@/components/ui/button';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
-import { Select, SelectOption } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from '@/components/ui/item';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import CellPopup from './CellPopup';
 import Leaderboard from './Leaderboard';
 import ResultsTable from './ResultsTable';
@@ -137,45 +137,60 @@ function CompetitionDashboard() {
           </Button>
         </div>
 
-        {/* Group Filter Toggle */}
+        {/* Filter Item */}
         <div className="flex justify-center mb-4">
-          <Card className="p-3 w-full max-w-[95vw] sm:max-w-[450px]">
-            <ToggleGroup
-              value={selectedGroup}
-              onValueChange={setSelectedGroup}
-              className="w-full justify-center flex-wrap"
-            >
-              {visibleGroups.map(group => (
-                <ToggleGroupItem key={group.id} value={group.id} className="flex-1 sm:flex-none">
-                  {group.name.toUpperCase()}
+          <Item className="w-full max-w-[95vw] sm:max-w-[450px]">
+            <ItemContent>
+              <ItemTitle>Filter</ItemTitle>
+              <ItemDescription>Filter display for a specific group</ItemDescription>
+            </ItemContent>
+            <ItemActions>
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  {visibleGroups.find(g => g.id === selectedGroup)?.name || 'All'}
                   <Badge variant="muted" className="ml-2">
-                    {group.count}
+                    {visibleGroups.find(g => g.id === selectedGroup)?.count || 0}
                   </Badge>
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-          </Card>
+                  <span className="ml-1 text-gray-400">▼</span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {visibleGroups.map(group => (
+                    <DropdownMenuItem
+                      key={group.id}
+                      onClick={() => setSelectedGroup(group.id)}
+                      className={selectedGroup === group.id ? 'bg-gray-800 text-white' : ''}
+                    >
+                      {group.name}
+                      <Badge variant="muted" className="ml-auto">
+                        {group.count}
+                      </Badge>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </ItemActions>
+          </Item>
         </div>
 
-        {/* GROUP PERFORMANCE Button - Styled like dark container */}
-        <div className="flex flex-col items-center mb-4">
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setShowConsensusTable(!showConsensusTable);
-              if (!showConsensusTable) setShowGlobalStandings(false);
-            }}
-            className={`px-4 py-2 text-sm ${
-              showConsensusTable
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-900 text-gray-300 hover:bg-gray-800 hover:text-white'
-            }`}
-          >
-            {showConsensusTable ? 'Hide Group Performance' : 'Group Performance'}
-          </Button>
-          <p className="text-xs text-gray-500 mt-1 text-center max-w-[300px]">
-            Learn more about how this group predicted, and what is impacting their scores
-          </p>
+        {/* Group Performance Item */}
+        <div className="flex justify-center mb-4">
+          <Item className="w-full max-w-[95vw] sm:max-w-[450px]">
+            <ItemContent>
+              <ItemTitle>Group Performance</ItemTitle>
+              <ItemDescription>Learn more about how this group predicted, and what is impacting their scores</ItemDescription>
+            </ItemContent>
+            <ItemActions>
+              <Button
+                variant="item"
+                onClick={() => {
+                  setShowConsensusTable(!showConsensusTable);
+                  if (!showConsensusTable) setShowGlobalStandings(false);
+                }}
+              >
+                {showConsensusTable ? 'Hide' : 'Show'}
+              </Button>
+            </ItemActions>
+          </Item>
         </div>
 
         {/* Group Performance / Consensus Table */}
@@ -216,6 +231,37 @@ function CompetitionDashboard() {
           </div>
         )}
 
+        {/* View Other Gameweeks Item */}
+        <div className="flex justify-center mb-4">
+          <Item className="w-full max-w-[95vw] sm:max-w-[450px]">
+            <ItemContent>
+              <ItemTitle>View Other Gameweeks</ItemTitle>
+              <ItemDescription>Navigate to see scores from previous matchweeks</ItemDescription>
+            </ItemContent>
+            <ItemActions>
+              <Button
+                variant="item"
+                size="icon"
+                onClick={() => setSelectedMatchweek(prev => Math.max(1, prev - 1))}
+                disabled={selectedMatchweek <= 1}
+              >
+                ←
+              </Button>
+              <span className="text-white font-medium min-w-[60px] text-center">
+                MW{selectedMatchweek}
+              </span>
+              <Button
+                variant="item"
+                size="icon"
+                onClick={() => setSelectedMatchweek(prev => Math.min(latestMatchweek, prev + 1))}
+                disabled={selectedMatchweek >= latestMatchweek}
+              >
+                →
+              </Button>
+            </ItemActions>
+          </Item>
+        </div>
+
         {/* Full Table / Results Table */}
         {showGlobalStandings && (
           <div className="mb-6">
@@ -239,26 +285,6 @@ function CompetitionDashboard() {
             </div>
           </div>
         )}
-
-        {/* Gameweek Selector */}
-        <div className="flex justify-center mt-8">
-          <Card className="p-4 w-full max-w-[95vw] sm:max-w-[450px]">
-            <div className="text-center text-white font-medium mb-2">
-              View Other Gameweeks
-            </div>
-            <Select
-              value={selectedMatchweek}
-              onValueChange={(val) => setSelectedMatchweek(Number(val))}
-              className="w-full"
-            >
-              {availableMatchweeks.map(wk => (
-                <SelectOption key={wk} value={wk}>
-                  Gameweek {wk}
-                </SelectOption>
-              ))}
-            </Select>
-          </Card>
-        </div>
 
         {/* Scoring Modal */}
         <Dialog open={showScoringModal} onOpenChange={setShowScoringModal}>

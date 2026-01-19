@@ -10,6 +10,22 @@ export const THEME = {
     white: 'text-white',
     grayText: 'text-gray-400'
   },
+  // UI Component colors (used by Item, Button, DropdownMenu)
+  ui: {
+    // Item component
+    itemBackground: 'bg-gray-900',       // Dark container background
+    itemBorder: 'border-gray-700',       // Subtle border for containers
+    itemMutedBackground: 'bg-gray-800/50', // Muted variant background
+    // Button (item variant)
+    buttonBackground: 'bg-gray-800',     // Button background
+    buttonBorder: 'border-gray-600',     // Button border (lighter than container)
+    buttonText: 'text-white',            // Button text
+    buttonHover: 'hover:bg-gray-700',    // Button hover state
+    // Dropdown
+    dropdownBackground: 'bg-gray-900',   // Dropdown menu background
+    dropdownBorder: 'border-gray-700',   // Dropdown border
+    dropdownItemHover: 'hover:bg-gray-800', // Dropdown item hover
+  },
   fontSizes: {
     title: 'text-4xl',
     subtitle: 'text-lg',

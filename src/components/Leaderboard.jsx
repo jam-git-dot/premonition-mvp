@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from '@/components/ui/item';
 import { availableGroups } from '../data/competitionData';
 import { useLeaderboardSections } from '../hooks/useLeaderboardSections';
 
@@ -52,7 +53,7 @@ const Leaderboard = React.memo(function Leaderboard({
 
   return (
     <div className="flex justify-center w-full">
-      <Card className="p-3 w-full max-w-[95vw] sm:max-w-[450px]">
+      <Card className="p-3 w-full max-w-[95vw] sm:max-w-[450px] border border-gray-700">
         {/* Header with title left, buttons right */}
         <div className="flex justify-between items-start mb-3">
           {/* Left side - Title and subtitle */}
@@ -70,10 +71,9 @@ const Leaderboard = React.memo(function Leaderboard({
             {/* Delta button - See What Changed */}
             {canShowComparison && (
               <Button
-                variant="ghost"
+                variant="item"
                 size="sm"
                 onClick={onShowComparison}
-                className="text-gray-400 hover:text-white hover:bg-gray-700 h-7 px-2"
                 title={`See changes from MW${prevMatchweek}`}
               >
                 <span className="text-sm">Δ</span>
@@ -83,24 +83,13 @@ const Leaderboard = React.memo(function Leaderboard({
 
             {/* Beeswarm toggle button */}
             <Button
-              variant="ghost"
+              variant="item"
               size="sm"
               onClick={onShowBeeswarm}
-              className={`h-7 px-2 ${showBeeswarm ? 'text-blue-400 bg-gray-700' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
+              className={showBeeswarm ? 'bg-blue-600 border-blue-500' : ''}
               title="Toggle score distribution"
             >
               <span className="text-xs">···</span>
-            </Button>
-
-            {/* Full Table button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onShowFullTable}
-              className="text-gray-400 hover:text-white hover:bg-gray-700 h-7 px-2"
-              title="View full standings table"
-            >
-              <span className="text-xs">FULL</span>
             </Button>
           </div>
         </div>
@@ -140,6 +129,19 @@ const Leaderboard = React.memo(function Leaderboard({
             </>
           )}
         </div>
+
+        {/* Full Table Item */}
+        <Item variant="muted" className="mt-4">
+          <ItemContent>
+            <ItemTitle>Full Table</ItemTitle>
+            <ItemDescription>View detailed standings with all team scores</ItemDescription>
+          </ItemContent>
+          <ItemActions>
+            <Button variant="item" onClick={onShowFullTable}>
+              View
+            </Button>
+          </ItemActions>
+        </Item>
       </Card>
     </div>
   );
