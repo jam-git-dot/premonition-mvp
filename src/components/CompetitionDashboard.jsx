@@ -172,6 +172,65 @@ function CompetitionDashboard() {
           </Item>
         </div>
 
+        {/* Leaderboard Section - with integrated controls */}
+        {!showGlobalStandings && (
+          <div className="flex flex-col lg:flex-row justify-center items-center lg:items-start gap-4 mb-4">
+            <Leaderboard
+              enhancedResults={leaderboardResults}
+              selectedGroup={selectedGroup}
+              currentMatchweek={currentMatchweek}
+              onShowFullTable={() => {
+                setShowGlobalStandings(true);
+                setShowConsensusTable(false);
+              }}
+              onShowBeeswarm={() => setShowBeeswarm(!showBeeswarm)}
+              showBeeswarm={showBeeswarm}
+              onShowComparison={() => setShowComparisonModal(true)}
+              canShowComparison={selectedMatchweek > 1}
+              prevMatchweek={selectedMatchweek - 1}
+            />
+            {showBeeswarm && (
+              <LeaderboardDotPlot
+                enhancedResults={leaderboardResults}
+                prevScoreMap={prevScoreMap}
+                prevPosMap={prevPosMap}
+                onNameClick={handleNameClick}
+              />
+            )}
+          </div>
+        )}
+
+        {/* View My Predictions Item */}
+        <div className="flex justify-center mb-4">
+          <Item className="w-full max-w-[95vw] sm:max-w-[450px]">
+            <ItemContent>
+              <ItemTitle>View My Predictions</ItemTitle>
+              <ItemDescription>Select your name to see your full prediction breakdown</ItemDescription>
+            </ItemContent>
+            <ItemActions>
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  Select Name
+                  <span className="ml-1 text-gray-400">▼</span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="max-h-[300px] overflow-y-auto">
+                  {realPredictions.map(prediction => (
+                    <DropdownMenuItem
+                      key={prediction.name}
+                      onClick={() => handleNameClick(prediction.name)}
+                    >
+                      {prediction.name}
+                      <Badge variant="muted" className="ml-auto">
+                        {prediction.groups.join(', ')}
+                      </Badge>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </ItemActions>
+          </Item>
+        </div>
+
         {/* Group Performance Item */}
         <div className="flex justify-center mb-4">
           <Item className="w-full max-w-[95vw] sm:max-w-[450px]">
@@ -200,34 +259,6 @@ function CompetitionDashboard() {
               groupData={groupData}
               teamsInOrder={teamsInOrder}
             />
-          </div>
-        )}
-
-        {/* Leaderboard Section - with integrated controls */}
-        {!showGlobalStandings && (
-          <div className="flex flex-col lg:flex-row justify-center items-center lg:items-start gap-4 mb-4">
-            <Leaderboard
-              enhancedResults={leaderboardResults}
-              selectedGroup={selectedGroup}
-              currentMatchweek={currentMatchweek}
-              onShowFullTable={() => {
-                setShowGlobalStandings(true);
-                setShowConsensusTable(false);
-              }}
-              onShowBeeswarm={() => setShowBeeswarm(!showBeeswarm)}
-              showBeeswarm={showBeeswarm}
-              onShowComparison={() => setShowComparisonModal(true)}
-              canShowComparison={selectedMatchweek > 1}
-              prevMatchweek={selectedMatchweek - 1}
-            />
-            {showBeeswarm && (
-              <LeaderboardDotPlot
-                enhancedResults={leaderboardResults}
-                prevScoreMap={prevScoreMap}
-                prevPosMap={prevPosMap}
-                onNameClick={handleNameClick}
-              />
-            )}
           </div>
         )}
 

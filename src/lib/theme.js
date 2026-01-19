@@ -48,6 +48,15 @@ export const THEME = {
     firstPlace: 'bg-green-600',
     topFour: 'bg-green-400',
     bottomThree: 'bg-red-500'
+  },
+  // Prominent button styling (large CTA buttons)
+  prominentButton: {
+    base: 'flex items-center gap-4 px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold shadow-lg transition-all duration-200 font-sans',
+    hover: 'hover:from-blue-700 hover:to-purple-700 hover:scale-[1.02] hover:shadow-xl',
+    text: {
+      main: 'text-xl font-bold',
+      subtitle: 'text-sm text-blue-100 font-medium'
+    }
   }
 };
 

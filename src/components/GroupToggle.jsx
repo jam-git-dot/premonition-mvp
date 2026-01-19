@@ -1,5 +1,6 @@
 // src/components/GroupToggle.jsx
 import { availableGroups } from '../data/competitionData'
+import { Button } from './ui/button'
 
 function GroupToggle({ selectedGroup, onGroupChange }) {
   // Filter out FPL for now as requested
@@ -9,25 +10,21 @@ function GroupToggle({ selectedGroup, onGroupChange }) {
     <div>
       <div className="flex flex-wrap gap-2">
         {visibleGroups.map(group => (
-          <button
+          <Button
             key={group.id}
             onClick={() => onGroupChange(group.id)}
-            className={`
-              px-3 py-1 rounded-lg font-medium transition-all duration-200 text-sm
-              ${selectedGroup === group.id
-                ? 'bg-blue-600 text-white shadow-md transform scale-105'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
-              }
-            `}
+            variant={selectedGroup === group.id ? 'toggleActive' : 'toggleInactive'}
+            size="sm"
+            className={selectedGroup === group.id ? 'scale-105' : ''}
           >
             {group.name}
-            <span className="ml-2 text-sm opacity-75">
+            <span className="ml-2 opacity-75">
               ({group.count})
             </span>
-          </button>
+          </Button>
         ))}
       </div>
-      
+
       {/* Group description */}
       <div className="mt-2 text-left text-sm text-gray-600">
         {selectedGroup === 'all' && (

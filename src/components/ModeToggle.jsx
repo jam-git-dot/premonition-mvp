@@ -1,30 +1,24 @@
 // src/components/ModeToggle.jsx
-import { useState } from 'react'
+import { Button } from './ui/button'
 
 function ModeToggle({ currentMode, onModeChange }) {
   return (
     <div className="flex items-center justify-center mb-6">
-      <div className="bg-gray-100 rounded-lg p-1 flex">
-        <button
+      <div className="bg-gray-100 rounded-lg p-1 flex gap-1">
+        <Button
           onClick={() => onModeChange('prediction')}
-          className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            currentMode === 'prediction'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
-          }`}
+          variant={currentMode === 'prediction' ? 'toggleActive' : 'toggleInactive'}
+          size="default"
         >
-          📝 Make Predictions
-        </button>
-        <button
+          Make Predictions
+        </Button>
+        <Button
           onClick={() => onModeChange('dashboard')}
-          className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            currentMode === 'dashboard'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
-          }`}
+          variant={currentMode === 'dashboard' ? 'toggleActive' : 'toggleInactive'}
+          size="default"
         >
-          📊 View Dashboard
-        </button>
+          View Dashboard
+        </Button>
       </div>
     </div>
   )

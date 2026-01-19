@@ -73,7 +73,7 @@ const DropdownMenuTrigger = React.forwardRef(
         aria-expanded={open}
         aria-haspopup={true}
         className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium",
+          "inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium font-sans transition-all duration-200",
           "bg-gray-800 text-white hover:bg-gray-700 border border-gray-600",
           className
         )}
@@ -124,10 +124,10 @@ const DropdownMenuItem = React.forwardRef(
         type="button"
         onClick={handleClick}
         className={cn(
-          "w-full flex items-center gap-2 px-3 py-2 text-sm text-left",
+          "w-full flex items-center gap-2 px-3 py-2 text-sm text-left font-sans font-medium",
           "text-gray-200 hover:bg-gray-800 hover:text-white",
           "focus:bg-gray-800 focus:text-white focus:outline-none",
-          "transition-colors cursor-pointer",
+          "transition-all duration-200 cursor-pointer",
           className
         )}
         {...props}
@@ -143,7 +143,7 @@ const DropdownMenuLabel = React.forwardRef(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("px-3 py-2 text-xs font-semibold text-gray-500", className)}
+      className={cn("px-3 py-2 text-xs font-semibold text-gray-500 font-sans", className)}
       {...props}
     />
   )
