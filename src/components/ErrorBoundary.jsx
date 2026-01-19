@@ -1,5 +1,7 @@
 // src/components/ErrorBoundary.jsx
 import React from 'react'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 
 export class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -12,7 +14,6 @@ export class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, info) {
-    // You can log the error to an error reporting service here
     console.error('ErrorBoundary caught an error:', error, info)
   }
 
@@ -20,14 +21,16 @@ export class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-red-50 p-4">
-          <div className="bg-white rounded-lg shadow-md p-6 max-w-md text-center">
+          <Card className="p-6 max-w-md text-center bg-white">
             <h2 className="text-xl font-bold text-red-600 mb-4">Something went wrong.</h2>
             <p className="text-gray-700 mb-4">{this.state.error?.toString()}</p>
-            <button
-              className="mt-2 bg-red-600 text-white px-4 py-2 rounded"
+            <Button
+              variant="destructive"
               onClick={() => window.location.reload()}
-            >Reload</button>
-          </div>
+            >
+              Reload
+            </Button>
+          </Card>
         </div>
       )
     }

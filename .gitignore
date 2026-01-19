@@ -49,3 +49,6 @@ validate-standings.js
 
 # Backup files from manual overrides
 backups/
+
+# Local development files
+.local/

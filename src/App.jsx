@@ -6,35 +6,15 @@ import { supabase } from './lib/supabase'
 import TeamList from './components/TeamList'
 import CompetitionDashboard from './components/CompetitionDashboard'
 import { track } from '@vercel/analytics'
-import { validateEmail, validateName, validateRankings, validateSubmission } from './utils/validation'
-
-// Modal component defined directly in this file
-function Modal({ isOpen, onClose, children }) {
-  if (!isOpen) return null
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-sm w-full max-h-96 overflow-y-auto">
-        {children}
-        
-        {/* Close button */}
-        <div className="px-6 pb-4">
-          <button
-            onClick={onClose}
-            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+import { validateSubmission } from './utils/validation'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogFooter, DialogClose } from '@/components/ui/dialog'
+import { Card } from '@/components/ui/card'
 
 function App() {
   // Check environment variable for app mode
   const appMode = import.meta.env.VITE_APP_MODE || 'dashboard';
-  
+
   // Original prediction state (for prediction mode)
   const [userEmail, setUserEmail] = useState('')
   const [userName, setUserName] = useState('')
@@ -42,7 +22,7 @@ function App() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [modalState, setModalState] = useState({
     isOpen: false,
-    type: null, // 'success' or 'error'
+    type: null,
     message: '',
     isUpdate: false
   })
@@ -54,16 +34,15 @@ function App() {
       .then(res => res.json())
       .then(data => {
         setVersion(data.version)
-        console.log('🚀 App Version:', data.version, 'Built:', data.buildTime)
+        console.log('App Version:', data.version, 'Built:', data.buildTime)
       })
       .catch(() => {
         setVersion('dev')
-        console.log('🚀 App Version: dev mode')
+        console.log('App Version: dev mode')
       })
   }, [])
 
   const handleSubmit = async () => {
-    // Prepare submission data
     const submission = {
       email: userEmail.trim().toLowerCase(),
       name: userName.trim(),
@@ -71,7 +50,6 @@ function App() {
       group: 'dev'
     }
 
-    // Comprehensive validation
     const validation = validateSubmission(submission);
     if (!validation.valid) {
       alert(`Validation Error:\n\n${validation.errors.join('\n')}`);
@@ -83,7 +61,6 @@ function App() {
     try {
       console.log('Submitting to Supabase:', submission)
 
-      // First try to update existing prediction
       const { data: existingData } = await supabase
         .from('predictions')
         .select('id')
@@ -92,9 +69,8 @@ function App() {
 
       let result
       const isUpdate = !!existingData
-      
+
       if (existingData) {
-        // Update existing prediction
         result = await supabase
           .from('predictions')
           .update({
@@ -105,7 +81,6 @@ function App() {
           .eq('email', submission.email)
           .select()
       } else {
-        // Insert new prediction
         result = await supabase
           .from('predictions')
           .insert([submission])
@@ -117,15 +92,13 @@ function App() {
       }
 
       console.log(`Successfully ${isUpdate ? 'updated' : 'saved'}:`, result.data)
-      
-      // Track successful submission
-      track('prediction_submitted', { 
+
+      track('prediction_submitted', {
         group: 'dev',
         teams_count: rankings.length,
         action: isUpdate ? 'update' : 'create'
       })
-      
-      // Show success modal
+
       setModalState({
         isOpen: true,
         type: 'success',
@@ -135,14 +108,12 @@ function App() {
 
     } catch (error) {
       console.error('Error saving prediction:', error)
-      
-      // Track failed submission
-      track('prediction_failed', { 
+
+      track('prediction_failed', {
         group: 'dev',
         error: error.message
       })
-      
-      // Show error modal
+
       setModalState({
         isOpen: true,
         type: 'error',
@@ -170,13 +141,12 @@ function App() {
     return (
       <div>
         <CompetitionDashboard />
-        
+
         {/* Footer */}
-        <div className="text-center py-4 text-xs text-gray-500 bg-gray-50">
+        <div className="text-center py-4 text-xs text-gray-500 bg-gray-900">
           Bing Bong • {version}
         </div>
-        
-        {/* Vercel Analytics */}
+
         <Analytics />
       </div>
     )
@@ -189,7 +159,7 @@ function App() {
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            ⚽ Predict the 2025-2026 Premier League Standings
+            Predict the 2025-2026 Premier League Standings
           </h1>
           <p className="text-gray-600 text-sm">
             Prem-o-nition
@@ -213,7 +183,7 @@ function App() {
               Use the same email to update your prediction later
             </p>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Your Name
@@ -229,34 +199,35 @@ function App() {
         </div>
 
         {/* Instructions */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <Card className="bg-blue-50 border border-blue-200 p-4 mb-6">
           <p className="text-sm text-blue-800">
             <strong>Instructions:</strong> Drag and drop the teams below to predict the final Premier League table. Position 1 = Champions, Position 20 = Relegated.
           </p>
-        </div>
+        </Card>
 
         {/* Team List */}
-        <TeamList 
-          teams={rankings} 
+        <TeamList
+          teams={rankings}
           setTeams={setRankings}
         />
 
         {/* Submit Section */}
         <div className="mt-6 space-y-3">
-          <button
+          <Button
             onClick={handleSubmit}
             disabled={!userEmail.trim() || !userName.trim() || isSubmitting}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-md transition-colors"
+            className="w-full py-3"
           >
-            {isSubmitting ? '💾 Saving...' : 'Submit Prediction'}
-          </button>
-          
-          <button
+            {isSubmitting ? 'Saving...' : 'Submit Prediction'}
+          </Button>
+
+          <Button
+            variant="secondary"
             onClick={handleReset}
-            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors"
+            className="w-full"
           >
             Reset
-          </button>
+          </Button>
         </div>
 
         {/* Footer */}
@@ -266,50 +237,56 @@ function App() {
       </div>
 
       {/* Success/Error Modal */}
-      <Modal isOpen={modalState.isOpen} onClose={closeModal}>
-        {modalState.type === 'success' ? (
-          <div className="p-6 text-center">
-            <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-green-700 mb-2">
-              {modalState.isUpdate ? 'Updated!' : 'Success!'}
-            </h2>
-            <p className="text-gray-600 mb-4">
-              Prediction {modalState.isUpdate ? 'updated' : 'saved'} successfully!
-            </p>
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-              <p className="text-sm text-gray-700">
-                <strong>Email:</strong> {userEmail}
+      <Dialog open={modalState.isOpen} onOpenChange={closeModal}>
+        <DialogContent className="bg-white text-gray-900">
+          {modalState.type === 'success' ? (
+            <div className="text-center">
+              <div className="text-6xl mb-4">🎉</div>
+              <h2 className="text-2xl font-bold text-green-700 mb-2">
+                {modalState.isUpdate ? 'Updated!' : 'Success!'}
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Prediction {modalState.isUpdate ? 'updated' : 'saved'} successfully!
               </p>
-              <p className="text-sm text-gray-700">
-                <strong>Name:</strong> {userName}
-              </p>
-            </div>
-            <p className="text-xs text-gray-500">
-              Use the same email to update your prediction anytime!
-            </p>
-          </div>
-        ) : (
-          <div className="p-6 text-center">
-            <div className="text-6xl mb-4">❌</div>
-            <h2 className="text-2xl font-bold text-red-700 mb-2">
-              Error!
-            </h2>
-            <p className="text-gray-600 mb-4">
-              There was a problem saving your prediction.
-            </p>
-            <div className="bg-red-50 rounded-lg p-4 mb-4">
-              <p className="text-sm text-red-700">
-                {modalState.message}
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <p className="text-sm text-gray-700">
+                  <strong>Email:</strong> {userEmail}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <strong>Name:</strong> {userName}
+                </p>
+              </div>
+              <p className="text-xs text-gray-500">
+                Use the same email to update your prediction anytime!
               </p>
             </div>
-            <p className="text-xs text-gray-500">
-              Please try again or contact support if the problem persists.
-            </p>
-          </div>
-        )}
-      </Modal>
-      
-      {/* Vercel Analytics */}
+          ) : (
+            <div className="text-center">
+              <div className="text-6xl mb-4">❌</div>
+              <h2 className="text-2xl font-bold text-red-700 mb-2">
+                Error!
+              </h2>
+              <p className="text-gray-600 mb-4">
+                There was a problem saving your prediction.
+              </p>
+              <div className="bg-red-50 rounded-lg p-4 mb-4">
+                <p className="text-sm text-red-700">
+                  {modalState.message}
+                </p>
+              </div>
+              <p className="text-xs text-gray-500">
+                Please try again or contact support if the problem persists.
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <DialogClose onClick={closeModal} className="bg-gray-100 hover:bg-gray-200 text-gray-700">
+              Close
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Analytics />
     </div>
   )

@@ -28,10 +28,13 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@supabase/supabase-js": "^2.53.0",
     "@vercel/analytics": "^1.5.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "prop-types": "^15.8.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "readline-sync": "^1.4.10"
+    "readline-sync": "^1.4.10",
+    "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

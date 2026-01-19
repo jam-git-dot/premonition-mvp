@@ -1,14 +1,15 @@
 // src/components/CellPopup.jsx
 import React, { useEffect } from 'react';
-import { getTeamColorClasses, getTeamAbbreviation } from '../data/teamInfo';
+import { getTeamAbbreviation } from '../data/teamInfo';
 import { getOrdinalSuffix } from '../lib/theme';
+import { Button } from '@/components/ui/button';
 
 export default function CellPopup({ info, onClose }) {
   const { x, y, userName, teamName, score, predictedPosition, currentPosition, stats } = info;
 
   // Calculate cell-pinned positioning
   const getCellPinnedPosition = () => {
-    const popupWidth = Math.min(450, window.innerWidth - 40); // Mobile-friendly max width
+    const popupWidth = Math.min(450, window.innerWidth - 40);
     const popupHeight = 220;
     const margin = 20;
     const cellSize = 35;
@@ -61,27 +62,24 @@ export default function CellPopup({ info, onClose }) {
     if (!stats?.allPredictions) return { densityPoints: [], userX: 0, actualX: 0, groupX: 0 };
 
     const allPreds = stats.allPredictions;
-    const plotWidth = width - 60; // Plot width (responsive)
-    const plotLeft = 30; // Left margin
+    const plotWidth = width - 60;
+    const plotLeft = 30;
 
-    // Count predictions at each position
     const positionCounts = {};
     for (let i = 1; i <= 20; i++) {
       positionCounts[i] = allPreds.filter(p => p === i).length;
     }
 
-    // Create density curve points
     const densityPoints = [];
     const maxCount = Math.max(...Object.values(positionCounts));
 
     for (let i = 1; i <= 20; i++) {
       const count = positionCounts[i] || 0;
-      const x = plotLeft + ((i - 1) / 19) * plotWidth;
-      const height = maxCount > 0 ? (count / maxCount) * 40 : 0; // Max height of 40px (doubled)
-      densityPoints.push({ position: i, x, height, count });
+      const xPos = plotLeft + ((i - 1) / 19) * plotWidth;
+      const height = maxCount > 0 ? (count / maxCount) * 40 : 0;
+      densityPoints.push({ position: i, x: xPos, height, count });
     }
 
-    // Calculate positions
     const userX = plotLeft + ((predictedPosition - 1) / 19) * plotWidth;
     const actualX = plotLeft + ((currentPosition - 1) / 19) * plotWidth;
     const groupMean = stats?.mean || null;
@@ -96,25 +94,23 @@ export default function CellPopup({ info, onClose }) {
   const createSmoothPath = () => {
     if (densityPoints.length === 0) return '';
 
-    const baseY = 100; // Base line Y position (moved down for taller plot)
+    const baseY = 100;
     let path = `M ${densityPoints[0].x} ${baseY}`;
 
     densityPoints.forEach((point, i) => {
-      const y = baseY - point.height;
+      const yPos = baseY - point.height;
       if (i === 0) {
-        path += ` L ${point.x} ${y}`;
+        path += ` L ${point.x} ${yPos}`;
       } else {
-        // Smooth curve to this point
         const prevPoint = densityPoints[i - 1];
         const cpX1 = prevPoint.x + (point.x - prevPoint.x) * 0.3;
         const cpY1 = baseY - prevPoint.height;
         const cpX2 = point.x - (point.x - prevPoint.x) * 0.3;
-        const cpY2 = y;
-        path += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${point.x} ${y}`;
+        const cpY2 = yPos;
+        path += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${point.x} ${yPos}`;
       }
     });
 
-    // Close the path along the baseline
     path += ` L ${densityPoints[densityPoints.length - 1].x} ${baseY}`;
     path += ` L ${densityPoints[0].x} ${baseY} Z`;
 
@@ -150,16 +146,21 @@ export default function CellPopup({ info, onClose }) {
         }}
       >
         {/* Header */}
-        <div className="p-2 rounded-t-lg bg-gray-700" style={{ backgroundColor: 'rgb(55, 65, 81)' }}>
+        <div className="p-2 rounded-t-lg bg-gray-700">
           <div className="flex justify-between items-center text-white">
             <div className="font-bold text-sm truncate flex-1">{userName}</div>
             <div className="font-bold text-lg mx-2">{getTeamAbbreviation(teamName)}</div>
             <div className={`text-lg font-bold ${isGoodPrediction ? 'text-green-200' : 'text-red-200'}`}>
               {difference > 0 ? `+${difference}` : difference}
             </div>
-            <button onClick={onClose} className="text-white hover:text-gray-300 text-lg font-bold ml-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="text-white hover:text-gray-300 ml-2 h-6 w-6"
+            >
               ×
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -167,10 +168,9 @@ export default function CellPopup({ info, onClose }) {
         <div className="p-3 bg-gray-900 text-white rounded-b-lg">
           {/* Beeswarm Plot */}
           <div className="mb-3">
-            <div className="relative h-32 bg-gray-800 rounded"> {/* 3x taller: h-20 -> h-32 */}
-              {/* SVG for smooth beeswarm */}
+            <div className="relative h-32 bg-gray-800 rounded">
               <svg className="absolute inset-0 w-full h-full">
-                {/* Group average line (behind beeswarm) */}
+                {/* Group average line */}
                 {groupX && (
                   <line
                     x1={groupX}
@@ -201,7 +201,7 @@ export default function CellPopup({ info, onClose }) {
                   strokeWidth="2"
                 />
 
-                {/* User rank - rotated vertically along the line */}
+                {/* User rank label */}
                 <text
                   x={userX - 8}
                   y="65"
@@ -224,7 +224,7 @@ export default function CellPopup({ info, onClose }) {
                   strokeWidth="2"
                 />
 
-                {/* Team abbreviation - in middle of actual line */}
+                {/* Team abbreviation label */}
                 <rect
                   x={actualX - 15}
                   y="58"
@@ -246,7 +246,7 @@ export default function CellPopup({ info, onClose }) {
                   {getTeamAbbreviation(teamName)}
                 </text>
 
-                {/* Group average label - rotated on other side */}
+                {/* Group average label */}
                 {groupX && (
                   <text
                     x={groupX + 8}
@@ -262,7 +262,7 @@ export default function CellPopup({ info, onClose }) {
                 )}
               </svg>
 
-              {/* Scale labels at bottom */}
+              {/* Scale labels */}
               <div className="absolute bottom-1 left-0 right-0 flex justify-between text-xs text-gray-500 px-8">
                 <span>1st</span>
                 <span>10th</span>
