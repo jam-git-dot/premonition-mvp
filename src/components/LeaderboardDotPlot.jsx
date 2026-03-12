@@ -2,15 +2,15 @@
 import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 
-// Compact layout constants
+// Responsive layout constants - values scale for better legibility
 const LAYOUT = {
-  PADDING: 12,
-  LINE_X: 40,
-  DOT_AREA_WIDTH: 40,
-  LABEL_AREA_WIDTH: 30,
-  NAME_AREA_WIDTH: 100,
-  VERTICAL_PADDING: 15,
-  MIN_HEIGHT: 200,
+  PADDING: 16,
+  LINE_X: 45,
+  DOT_AREA_WIDTH: 60,
+  LABEL_AREA_WIDTH: 35,
+  NAME_AREA_WIDTH: 120,
+  VERTICAL_PADDING: 20,
+  MIN_HEIGHT: 220,
 };
 
 function LeaderboardDotPlot({
@@ -66,7 +66,7 @@ function LeaderboardDotPlot({
   return (
     <div className="flex justify-center w-full lg:w-auto">
       <Card
-        className="relative"
+        className="relative border border-gray-700"
         style={{
           padding: `${LAYOUT.PADDING}px`,
           minHeight: `${CONTAINER_HEIGHT}px`,
@@ -75,7 +75,7 @@ function LeaderboardDotPlot({
         }}
       >
         {/* Title */}
-        <div className="text-xs text-gray-400 mb-2 text-center">Score Distribution</div>
+        <div className="text-sm text-gray-400 mb-3 text-center font-medium">Score Distribution</div>
 
         <div className="relative" style={{ height: `${PLOT_HEIGHT}px`, width: `${TOTAL_WIDTH}px` }}>
           {/* Vertical scale line */}
@@ -111,9 +111,9 @@ function LeaderboardDotPlot({
               >
                 {/* Delta label - positioned to the left of the line */}
                 <div
-                  className="absolute text-[10px] text-gray-500 font-mono"
+                  className="absolute text-xs text-gray-400 font-mono"
                   style={{
-                    left: `${LAYOUT.LINE_X - 22}px`,
+                    left: `${LAYOUT.LINE_X - 28}px`,
                     top: `${yPos}px`,
                     transform: 'translateY(-50%)'
                   }}
@@ -123,9 +123,9 @@ function LeaderboardDotPlot({
 
                 {/* Player dots */}
                 <div
-                  className="absolute flex items-center gap-0.5"
+                  className="absolute flex items-center gap-1"
                   style={{
-                    left: `${LAYOUT.LINE_X + 4}px`,
+                    left: `${LAYOUT.LINE_X + 6}px`,
                     top: `${yPos}px`,
                     transform: 'translateY(-50%)'
                   }}
@@ -137,11 +137,11 @@ function LeaderboardDotPlot({
                       <div
                         key={`${player.name}-${idx}`}
                         onClick={() => handleDotClick(player)}
-                        className={`w-2 h-2 rounded-full transition-all cursor-pointer hover:scale-150 ${
+                        className={`w-3 h-3 rounded-full transition-all cursor-pointer hover:scale-150 ${
                           isLeader
                             ? 'bg-yellow-500'
                             : 'bg-blue-500'
-                        } ${hoveredCluster === score ? 'scale-125 ring-1 ring-white' : ''}`}
+                        } ${hoveredCluster === score ? 'scale-125 ring-2 ring-white' : ''}`}
                         title={player.name}
                       />
                     );
@@ -151,7 +151,7 @@ function LeaderboardDotPlot({
                 {/* Names - show for first and last only */}
                 {(isFirstScore || isLastScore) && (
                   <div
-                    className="absolute text-[10px] text-gray-300 whitespace-nowrap truncate"
+                    className="absolute text-xs text-gray-200 whitespace-nowrap truncate font-medium"
                     style={{
                       left: `${LAYOUT.LINE_X + LAYOUT.DOT_AREA_WIDTH}px`,
                       top: `${yPos}px`,
@@ -168,13 +168,13 @@ function LeaderboardDotPlot({
                 {/* Hover tooltip */}
                 {hoveredCluster === score && (
                   <div
-                    className="absolute bg-gray-800 border border-gray-600 rounded px-2 py-1.5 text-xs whitespace-nowrap shadow-xl z-50"
+                    className="absolute bg-gray-900 border border-gray-500 rounded-lg px-3 py-2 text-sm whitespace-nowrap shadow-xl z-50"
                     style={{
-                      left: `${LAYOUT.LINE_X + LAYOUT.DOT_AREA_WIDTH + 5}px`,
-                      top: `${yPos + 15}px`,
+                      left: `${LAYOUT.LINE_X + LAYOUT.DOT_AREA_WIDTH + 8}px`,
+                      top: `${yPos + 18}px`,
                     }}
                   >
-                    <div className="text-white font-bold mb-1">
+                    <div className="text-white font-bold mb-1.5">
                       Score: {score} (+{deltaFromFirst}) • {clusterSize} {clusterSize === 1 ? 'player' : 'players'}
                     </div>
                     {nonConsensusPlayers.slice(0, 5).map((player) => {
@@ -183,11 +183,11 @@ function LeaderboardDotPlot({
                       const posChange = prevPos ? prevPos - player.position : null;
 
                       return (
-                        <div key={player.name} className="text-gray-300 text-[10px]">
+                        <div key={player.name} className="text-gray-300 text-xs py-0.5">
                           {player.position === 1 && '👑 '}
                           {player.name}
                           {posChange !== null && posChange !== 0 && (
-                            <span className={`ml-1 ${posChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            <span className={`ml-1.5 ${posChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
                               {posChange > 0 ? `↑${posChange}` : `↓${Math.abs(posChange)}`}
                             </span>
                           )}
@@ -195,7 +195,7 @@ function LeaderboardDotPlot({
                       );
                     })}
                     {nonConsensusPlayers.length > 5 && (
-                      <div className="text-gray-500 text-[10px]">+{nonConsensusPlayers.length - 5} more</div>
+                      <div className="text-gray-500 text-xs pt-1">+{nonConsensusPlayers.length - 5} more</div>
                     )}
                   </div>
                 )}

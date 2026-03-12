@@ -38,7 +38,7 @@ const DialogContent = React.forwardRef(
           ref={ref}
           onClick={(e) => e.stopPropagation()}
           className={cn(
-            "bg-gray-900 border border-gray-700 rounded-lg shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto",
+            "relative bg-gray-900 border border-gray-700 rounded-lg shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto",
             className
           )}
           {...props}
@@ -104,6 +104,27 @@ const DialogClose = React.forwardRef(
 )
 DialogClose.displayName = "DialogClose"
 
+const DialogCloseX = React.forwardRef(
+  ({ className, onClick, ...props }, ref) => (
+    <button
+      ref={ref}
+      className={cn(
+        "absolute top-3 right-3 p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center",
+        className
+      )}
+      onClick={onClick}
+      aria-label="Close"
+      {...props}
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  )
+)
+DialogCloseX.displayName = "DialogCloseX"
+
 export {
   Dialog,
   DialogOverlay,
@@ -113,4 +134,5 @@ export {
   DialogDescription,
   DialogFooter,
   DialogClose,
+  DialogCloseX,
 }

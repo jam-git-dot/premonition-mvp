@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { compareWeeks, getBiggestMovers, getBiggestImprovers, getBiggestDecliners } from '../utils/weekComparison';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogCloseX } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -36,6 +36,7 @@ function WeekComparisonModal({ weekA, weekB, selectedGroup, onClose }) {
     return (
       <Dialog open={true} onOpenChange={onClose}>
         <DialogContent className="max-w-2xl">
+          <DialogCloseX onClick={onClose} />
           <DialogHeader>
             <DialogTitle>Week Comparison</DialogTitle>
           </DialogHeader>
@@ -59,11 +60,12 @@ function WeekComparisonModal({ weekA, weekB, selectedGroup, onClose }) {
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl flex items-center gap-2">
+        <DialogCloseX onClick={onClose} />
+        <DialogHeader className="pr-12">
+          <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2">
             Week-Over-Week Comparison
           </DialogTitle>
-          <p className="text-gray-400 mt-1">
+          <p className="text-gray-400 mt-1 text-sm">
             Gameweek {weekA} → Gameweek {weekB} • {groupText}
           </p>
         </DialogHeader>
@@ -139,16 +141,16 @@ function WeekComparisonModal({ weekA, weekB, selectedGroup, onClose }) {
         {/* Full Table */}
         <Card className="bg-gray-800 border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-xs sm:text-sm">
               <thead className="bg-gray-700 border-b border-gray-600">
                 <tr>
-                  <th className="px-4 py-3 text-left text-white font-bold">Rank</th>
-                  <th className="px-4 py-3 text-left text-white font-bold">Player</th>
-                  <th className="px-4 py-3 text-center text-white font-bold">Score</th>
-                  <th className="px-4 py-3 text-center text-white font-bold">Prev Rank</th>
-                  <th className="px-4 py-3 text-center text-white font-bold">Prev Score</th>
-                  <th className="px-4 py-3 text-center text-white font-bold">Δ Rank</th>
-                  <th className="px-4 py-3 text-center text-white font-bold">Δ Score</th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-white font-bold">#</th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-white font-bold">Player</th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-white font-bold">Score</th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-white font-bold hidden sm:table-cell">Prev #</th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-white font-bold hidden sm:table-cell">Prev Score</th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-white font-bold">Δ Rank</th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-white font-bold">Δ Score</th>
                 </tr>
               </thead>
               <tbody>
@@ -157,16 +159,16 @@ function WeekComparisonModal({ weekA, weekB, selectedGroup, onClose }) {
                     key={player.name}
                     className={`border-b border-gray-700 ${index % 2 === 0 ? 'bg-gray-800' : 'bg-gray-750'}`}
                   >
-                    <td className="px-4 py-3 text-white font-bold">{player.currentPosition}</td>
-                    <td className="px-4 py-3 text-gray-200">{player.name}</td>
-                    <td className="px-4 py-3 text-center text-white font-bold">{player.currentScore}</td>
-                    <td className="px-4 py-3 text-center text-gray-400">
+                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-white font-bold">{player.currentPosition}</td>
+                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-200 truncate max-w-[100px] sm:max-w-none">{player.name}</td>
+                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-center text-white font-bold">{player.currentScore}</td>
+                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-center text-gray-400 hidden sm:table-cell">
                       {player.previousPosition ?? '-'}
                     </td>
-                    <td className="px-4 py-3 text-center text-gray-400">
+                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-center text-gray-400 hidden sm:table-cell">
                       {player.previousScore ?? '-'}
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
                       {player.positionChange === null ? (
                         <span className="text-gray-500">-</span>
                       ) : player.positionChange === 0 ? (
@@ -177,7 +179,7 @@ function WeekComparisonModal({ weekA, weekB, selectedGroup, onClose }) {
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
                       {player.scoreChange === null ? (
                         <span className="text-gray-500">-</span>
                       ) : player.scoreChange === 0 ? (

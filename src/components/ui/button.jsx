@@ -29,11 +29,11 @@ const buttonVariants = cva(
           "bg-gray-100 text-gray-600 hover:text-gray-800 hover:bg-gray-200",
       },
       size: {
-        default: "h-9 px-4 py-2 text-sm",
-        sm: "h-8 px-3 py-1.5 text-sm",
-        lg: "h-10 px-6 py-2 text-base",
-        xl: "h-12 px-8 py-3 text-lg",
-        icon: "h-9 w-9 text-sm",
+        default: "h-10 min-h-[44px] px-4 py-2 text-sm",
+        sm: "h-9 min-h-[40px] px-3 py-1.5 text-sm",
+        lg: "h-11 min-h-[44px] px-6 py-2 text-base",
+        xl: "h-12 min-h-[48px] px-8 py-3 text-lg",
+        icon: "h-10 w-10 min-h-[44px] min-w-[44px] text-sm",
       },
     },
     defaultVariants: {

@@ -4,7 +4,7 @@ import { availableGroups, latestMatchweek, availableMatchweeks, realPredictions 
 import { getCellStyle, getOrdinalSuffix } from '../lib/theme';
 import { useCompetitionData } from '../hooks/useCompetitionData';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogCloseX, DialogFooter } from '@/components/ui/dialog';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from '@/components/ui/item';
@@ -320,7 +320,8 @@ function CompetitionDashboard() {
         {/* Scoring Modal */}
         <Dialog open={showScoringModal} onOpenChange={setShowScoringModal}>
           <DialogContent>
-            <DialogHeader>
+            <DialogCloseX onClick={() => setShowScoringModal(false)} />
+            <DialogHeader className="pr-12">
               <DialogTitle>How Scoring Works</DialogTitle>
             </DialogHeader>
             <DialogDescription className="mb-4">
@@ -340,7 +341,8 @@ function CompetitionDashboard() {
         {/* User Predictions Modal */}
         <Dialog open={showUserModal} onOpenChange={setShowUserModal}>
           <DialogContent className="max-h-[90vh]">
-            <DialogHeader>
+            <DialogCloseX onClick={() => setShowUserModal(false)} />
+            <DialogHeader className="pr-12">
               <DialogTitle className="flex justify-between items-center">
                 <span>{activeUser}'s Predictions • GW{currentMatchweek}</span>
                 <span className="text-xl">

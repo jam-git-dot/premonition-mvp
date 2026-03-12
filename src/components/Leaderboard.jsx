@@ -76,8 +76,8 @@ const Leaderboard = React.memo(function Leaderboard({
                 onClick={onShowComparison}
                 title={`See changes from MW${prevMatchweek}`}
               >
-                <span className="text-sm">Δ</span>
-                <span className="text-xs ml-1 hidden sm:inline">MW{prevMatchweek}</span>
+                <span className="text-sm font-bold">Δ</span>
+                <span className="text-xs ml-1">MW{prevMatchweek}</span>
               </Button>
             )}
 
@@ -89,7 +89,7 @@ const Leaderboard = React.memo(function Leaderboard({
               className={showBeeswarm ? 'bg-blue-600 border-blue-500' : ''}
               title="Toggle score distribution"
             >
-              <span className="text-xs">···</span>
+              <span className="text-sm tracking-wider">•••</span>
             </Button>
           </div>
         </div>
