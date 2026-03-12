@@ -47,7 +47,7 @@ jobs:
       - name: Check for changes
         id: git-check
         run: |
-          git diff --exit-code src/data/standingsByGameweek.json || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --exit-code src/data/standingsByGameweek.json src/data/teamSnapshots.json || echo "changed=true" >> $GITHUB_OUTPUT
 
       # Step 6: Commit and push changes if standings were updated
       - name: Commit and push changes
@@ -57,7 +57,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add src/data/standingsByGameweek.json
           git add src/data/scoresByGameweek.json
-          git add src/data/missed-gameweeks.json
+          git add src/data/teamSnapshots.json
           git commit -m "Auto-update: Premier League standings $(date +'%Y-%m-%d %H:%M UTC')"
           git push
 
@@ -69,5 +69,5 @@ jobs:
           name: standings-update-log-${{ github.run_number }}
           path: |
             src/data/standingsByGameweek.json
-            src/data/missed-gameweeks.json
+            src/data/teamSnapshots.json
           retention-days: 30
