@@ -316,3 +316,56 @@ export async function notifyNoAction(reason, details = {}) {
 
   await sendDiscordMessage(embed);
 }
+
+/**
+ * Notify code/feature update deployed
+ */
+export async function notifyCodeUpdate(version, commitInfo = {}) {
+  const timestamp = new Date().toISOString();
+
+  const fields = [
+    {
+      name: 'Version',
+      value: `\`${version}\``,
+      inline: true,
+    },
+    {
+      name: 'Time',
+      value: new Date().toLocaleString('en-US', { timeZone: 'UTC', timeZoneName: 'short' }),
+      inline: true,
+    },
+  ];
+
+  if (commitInfo.hash) {
+    fields.push({
+      name: 'Commit',
+      value: `\`${commitInfo.hash}\``,
+      inline: true,
+    });
+  }
+
+  if (commitInfo.message) {
+    fields.push({
+      name: 'Changes',
+      value: commitInfo.message,
+      inline: false,
+    });
+  }
+
+  if (commitInfo.changelog) {
+    fields.push({
+      name: 'Changelog',
+      value: commitInfo.changelog,
+      inline: false,
+    });
+  }
+
+  const embed = {
+    title: '🚀 Code Update Deployed',
+    color: 0x9b59b6, // Purple
+    fields,
+    timestamp,
+  };
+
+  await sendDiscordMessage(embed);
+}
