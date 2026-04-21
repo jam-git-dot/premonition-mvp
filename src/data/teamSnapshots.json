@@ -9039,8 +9039,234 @@
           "position": 20
         }
       }
+    },
+    {
+      "date": "2026-04-21",
+      "timestamp": "2026-04-21T05:26:21.028Z",
+      "teams": {
+        "Arsenal": {
+          "played": 33,
+          "points": 70,
+          "goalDifference": 37,
+          "goalsFor": 63,
+          "goalsAgainst": 26,
+          "won": 21,
+          "drawn": 7,
+          "lost": 5,
+          "position": 1
+        },
+        "Manchester City": {
+          "played": 32,
+          "points": 67,
+          "goalDifference": 36,
+          "goalsFor": 65,
+          "goalsAgainst": 29,
+          "won": 20,
+          "drawn": 7,
+          "lost": 5,
+          "position": 2
+        },
+        "Manchester United": {
+          "played": 33,
+          "points": 58,
+          "goalDifference": 13,
+          "goalsFor": 58,
+          "goalsAgainst": 45,
+          "won": 16,
+          "drawn": 10,
+          "lost": 7,
+          "position": 3
+        },
+        "Aston Villa": {
+          "played": 33,
+          "points": 58,
+          "goalDifference": 6,
+          "goalsFor": 47,
+          "goalsAgainst": 41,
+          "won": 17,
+          "drawn": 7,
+          "lost": 9,
+          "position": 4
+        },
+        "Liverpool": {
+          "played": 33,
+          "points": 55,
+          "goalDifference": 11,
+          "goalsFor": 54,
+          "goalsAgainst": 43,
+          "won": 16,
+          "drawn": 7,
+          "lost": 10,
+          "position": 5
+        },
+        "Chelsea": {
+          "played": 33,
+          "points": 48,
+          "goalDifference": 11,
+          "goalsFor": 53,
+          "goalsAgainst": 42,
+          "won": 13,
+          "drawn": 9,
+          "lost": 11,
+          "position": 6
+        },
+        "Brentford": {
+          "played": 33,
+          "points": 48,
+          "goalDifference": 4,
+          "goalsFor": 48,
+          "goalsAgainst": 44,
+          "won": 13,
+          "drawn": 9,
+          "lost": 11,
+          "position": 7
+        },
+        "AFC Bournemouth": {
+          "played": 33,
+          "points": 48,
+          "goalDifference": 0,
+          "goalsFor": 50,
+          "goalsAgainst": 50,
+          "won": 11,
+          "drawn": 15,
+          "lost": 7,
+          "position": 8
+        },
+        "Brighton & Hove Albion": {
+          "played": 33,
+          "points": 47,
+          "goalDifference": 6,
+          "goalsFor": 45,
+          "goalsAgainst": 39,
+          "won": 12,
+          "drawn": 11,
+          "lost": 10,
+          "position": 9
+        },
+        "Everton": {
+          "played": 33,
+          "points": 47,
+          "goalDifference": 1,
+          "goalsFor": 40,
+          "goalsAgainst": 39,
+          "won": 13,
+          "drawn": 8,
+          "lost": 12,
+          "position": 10
+        },
+        "Sunderland": {
+          "played": 33,
+          "points": 46,
+          "goalDifference": -4,
+          "goalsFor": 36,
+          "goalsAgainst": 40,
+          "won": 12,
+          "drawn": 10,
+          "lost": 11,
+          "position": 11
+        },
+        "Fulham": {
+          "played": 33,
+          "points": 45,
+          "goalDifference": -3,
+          "goalsFor": 43,
+          "goalsAgainst": 46,
+          "won": 13,
+          "drawn": 6,
+          "lost": 14,
+          "position": 12
+        },
+        "Crystal Palace": {
+          "played": 32,
+          "points": 43,
+          "goalDifference": -1,
+          "goalsFor": 35,
+          "goalsAgainst": 36,
+          "won": 11,
+          "drawn": 10,
+          "lost": 11,
+          "position": 13
+        },
+        "Newcastle United": {
+          "played": 33,
+          "points": 42,
+          "goalDifference": -3,
+          "goalsFor": 46,
+          "goalsAgainst": 49,
+          "won": 12,
+          "drawn": 6,
+          "lost": 15,
+          "position": 14
+        },
+        "Leeds United": {
+          "played": 33,
+          "points": 39,
+          "goalDifference": -7,
+          "goalsFor": 42,
+          "goalsAgainst": 49,
+          "won": 9,
+          "drawn": 12,
+          "lost": 12,
+          "position": 15
+        },
+        "Nottingham Forest": {
+          "played": 33,
+          "points": 36,
+          "goalDifference": -9,
+          "goalsFor": 36,
+          "goalsAgainst": 45,
+          "won": 9,
+          "drawn": 9,
+          "lost": 15,
+          "position": 16
+        },
+        "West Ham United": {
+          "played": 33,
+          "points": 33,
+          "goalDifference": -17,
+          "goalsFor": 40,
+          "goalsAgainst": 57,
+          "won": 8,
+          "drawn": 9,
+          "lost": 16,
+          "position": 17
+        },
+        "Tottenham Hotspur": {
+          "played": 33,
+          "points": 31,
+          "goalDifference": -11,
+          "goalsFor": 42,
+          "goalsAgainst": 53,
+          "won": 7,
+          "drawn": 10,
+          "lost": 16,
+          "position": 18
+        },
+        "Burnley": {
+          "played": 33,
+          "points": 20,
+          "goalDifference": -33,
+          "goalsFor": 34,
+          "goalsAgainst": 67,
+          "won": 4,
+          "drawn": 8,
+          "lost": 21,
+          "position": 19
+        },
+        "Wolverhampton Wanderers": {
+          "played": 33,
+          "points": 17,
+          "goalDifference": -37,
+          "goalsFor": 24,
+          "goalsAgainst": 61,
+          "won": 3,
+          "drawn": 8,
+          "lost": 22,
+          "position": 20
+        }
+      }
     }
   ],
-  "lastFetched": "2026-04-20T05:40:16.638Z",
+  "lastFetched": "2026-04-21T05:26:21.028Z",
   "notes": "Stores daily API snapshots. Each snapshot captures every team's state (games played, points, GD). Used to calculate standings at any games-played level without requiring all teams to be in sync."
 }
