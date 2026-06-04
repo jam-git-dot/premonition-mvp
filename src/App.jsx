@@ -151,10 +151,10 @@ function App() {
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <h1 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900 mb-2">
             Predict the 2025-2026 Premier League Standings
           </h1>
-          <p className="text-gray-600 text-sm">
+          <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
             Prem-o-nition
           </p>
         </div>

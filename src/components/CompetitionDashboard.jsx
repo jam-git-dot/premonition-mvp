@@ -115,10 +115,10 @@ function CompetitionDashboard() {
         {/* Header Section */}
         <div className="relative mb-4">
           <div className="text-center">
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
-              PREMONITION
+            <h1 className="font-display text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-1">
+              PREM<span className="text-brand">O</span>NITION
             </h1>
-            <p className="text-gray-400 text-sm sm:text-base">
+            <p className="text-brand text-xs sm:text-sm font-semibold uppercase tracking-[0.2em]">
               Premier League Prediction Leaderboard
             </p>
             {lastUpdated && (
