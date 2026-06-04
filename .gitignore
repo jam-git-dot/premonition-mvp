@@ -22,7 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.env.local
+
+# Environment / secrets — never commit real keys (Supabase, Football API, Discord)
+# .env.example is the only env file that belongs in the repo (placeholders only)
+.env
+.env.*
+!.env.example
 
 # Personal dev tools (not part of project)
 dev-tips.js
@@ -56,3 +61,12 @@ backups/
 # Installed agent skills (external tooling, restorable via skills-lock)
 .agents/
 skills-lock.json
+
+# Generated build artifacts (recreated by `node scripts/version.js` on dev/build)
+public/version.json
+
+# Test coverage output
+coverage/
+
+# Vercel CLI local link/config
+.vercel

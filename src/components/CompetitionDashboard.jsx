@@ -1,6 +1,6 @@
 // src/components/CompetitionDashboard.jsx
 import { useState, useEffect } from 'react'
-import { availableGroups, latestMatchweek, availableMatchweeks, realPredictions } from '../data/competitionData'
+import { availableGroups, latestMatchweek, realPredictions } from '../data/competitionData'
 import { getCellStyle, getOrdinalSuffix } from '../lib/theme';
 import { useCompetitionData } from '../hooks/useCompetitionData';
 import { Button } from '@/components/ui/button';

@@ -1,10 +1,56 @@
 # Premonition — Revamp Audit & Plan
 
-> Status: **AUDIT + PLAN ONLY. No app code has been changed.** Nothing in this
-> document has been implemented. The live leaderboard is untouched.
+> Status: **Foundation slice committed locally (not pushed/deployed).** The live
+> leaderboard is untouched until we explicitly `git push`.
 >
 > Skills used for this audit: `frontend-design` (visual/UX) and
 > `vercel-react-best-practices` (performance/structure).
+
+---
+
+## Session log (what's DONE) & Next-session TODOs
+
+### ✅ Done this session (committed to local `main`, NOT pushed)
+- Updated stale local clone to `origin/main` (full GW1–38 season).
+- Added score-integrity golden-record test (`src/data/scoreIntegrity.test.js`).
+- Design foundation: Bricolage Grotesque + Hanken Grotesk fonts, gold/coral brand
+  tokens, `font-display` utility, restyled PREMONITION wordmark + input title.
+- Repo hygiene: comprehensive `.gitignore` (env/secrets, `public/version.json`,
+  `.agents/`, `skills-lock.json`, `coverage/`, `.vercel`); untracked the generated
+  `version.json` and the private `.claude` doc. Secret audit: clean (no keys exposed;
+  Supabase **anon** key in client bundle is by-design/RLS-protected).
+
+### 🔜 Next session — "major UI fix + optimization"
+**Primary (the major UI work):**
+- **A3–A6** Leaderboard visual pass: layered dark theme, hero header, replace the
+  repetitive stacked `Item` cards with a deliberate layout, refine score color scale
+  (accessible/colorblind-safe), add a staggered load-in.
+- **A7–A8** Apply the same design language to the (dormant) input phase.
+
+**Optimization:**
+- **C1** Stop bundling the 2.2 MB `scoresByGameweek.json` (split per-week / fetch on demand).
+- **C2** Code-split the two phases (the inactive phase + `@dnd-kit` shouldn't ship).
+- **C4–C5** `useCallback` for memo'd children; extract inline IIFE render blocks.
+
+**Cleanup / health (good to fold in):**
+- **C6** Delete dead code: `ModeToggle`, `ProminentButton`, `GroupToggle`,
+  `src/data/predictions.js`, empty `SubmitForm.jsx` / `useDragAndDrop.js`, root
+  duplicate `*.cjs`, unused `prominent` styles.
+- Address the **66 pre-existing ESLint errors** (e.g. `no-undef __dirname` in
+  `vite.config.js`, unused `availableMatchweeks` import) — none introduced this session.
+- Fix the build warning: inconsistent JSON import attributes for
+  `standingsByGameweek.json` (`competitionData.js` uses `with { type: 'json' }`, the
+  hook does not).
+
+**Functionality (later phases):**
+- **B1** Read predictions live from Supabase (must reproduce identical historical
+  scores — gate against the golden record).
+- **B2–B7** edit-existing-prediction, real groups + submission lock, dedupe the
+  double `/version.json` fetch, reconcile the hidden FPL group, direct gameweek
+  navigation, first-class consensus modeling.
+
+**Deploy gate:** push `main` to production only once the leaderboard restyle (A3–A6)
+is finished, so the live site updates in one finished step rather than transitionally.
 
 ---
 
