@@ -52,3 +52,7 @@ backups/
 
 # Local development files
 .local/
+
+# Installed agent skills (external tooling, restorable via skills-lock)
+.agents/
+skills-lock.json
