@@ -38,15 +38,15 @@ These are the rules that have actually bitten. Treat them as hard constraints.
   `App.jsx:133`. NEVER set `VITE_APP_MODE=prediction` in Vercel and never change that default —
   it would flip the live site out of the leaderboard. Exercise the input phase locally only:
   `VITE_APP_MODE=prediction npm run dev`.
-- **Pushing `main` deploys to production.** Never `git push` without explicit confirmation in
-  the current conversation. Prior approval doesn't carry over.
+- **Pushing `main` deploys to production** (Vercel auto-deploy), which is what gives the
+  global no-push-without-confirmation rule real teeth here.
 - **The season's results are immutable.** `src/data/standingsByGameweek.json`,
   `src/data/scoresByGameweek.json`, and the predictions in `src/data/competitionData.js` are a
   finished historical record. Don't edit the numbers. `src/data/scoreIntegrity.test.js` is a
   golden-record snapshot and must pass after any change — if it fails, you changed history,
   so revert rather than updating the snapshot.
-- **Never commit credentials**, in any file, even a gitignored one. The Supabase **anon** key
-  in the client bundle is by design (RLS-protected) — that one is fine.
+- **The Supabase anon key in the client bundle is fine** — public by design and RLS-protected.
+  It's the one exception to the global no-credentials-in-code rule; nothing else is.
 
 ## Repo is auto-committed — check you're current
 
@@ -59,24 +59,14 @@ A SessionStart hook (`scripts/git-sync-check.sh`) reports sync status, but befor
 work, confirm it yourself: `git fetch && git status -sb`. If behind, reconcile before doing
 anything else.
 
-## How to work with me
+## Working here
 
-I'm a mechanical engineer, not a professional programmer, and I'm doing this partly to learn.
-So:
+How I like to work generally — push back, plan before coding, verify before claiming done —
+lives in my global `~/.claude/CLAUDE.md`. Only the project-specific additions are here:
 
-- **Push back.** If an idea is wrong, risky, or unclear, say so directly. Honesty over
-  reassurance — "this is a bad idea because…" beats "sure, I'll do that." You know more about
-  code than I do; act like it.
-- **State assumptions before implementing**, not after. If I haven't told you the constraint,
-  name the one you're assuming and let me correct it.
-- **Propose before building anything big** (roughly: >1 hour, touches scoring logic, or adds a
-  dependency). Give 2–3 options with real trade-offs and a recommendation, then let me pick.
+- After a change I'd want to look at, run `npm run dev`, confirm it's actually serving, and
+  tell me explicitly that you did.
 - **Explain the why**, briefly, when you use a pattern I might not know.
-- **Surface tech debt as you create it** rather than silently accruing it.
-- **Verify, don't assert.** Before saying something is done, committed, or passing, run the
-  command that proves it and show the output.
-- After a change I'd want to see, run `npm run dev`, confirm it's actually serving, and tell me
-  explicitly that you did.
 
 ## Quality gates
 
