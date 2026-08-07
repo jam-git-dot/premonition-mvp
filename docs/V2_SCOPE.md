@@ -74,6 +74,7 @@ season. Emails are captured at entry precisely so players can be pulled back whe
 | 9 | **Engagement features out of scope** | No weekly predictions; v2 keeps the season-long format |
 | 10 | **Next.js** | Server rendering gives shareable player pages and server-side data fetching (the fix for the 2.8 MB bundle); predictions get written server-side where they can't be tampered with. Migrating to it later would be a real rewrite |
 | 11 | **TypeScript** | Eliminates the MVP's worst bug class — a renamed or mistyped field silently becoming `undefined` inside a score calculation |
+| 12 | **Editing before lock is in Phase 1**, via magic link, with predictions versioned rather than mutated | "I picked the wrong order" is a predictable request from ~100 people. Versioning means an edit never destroys anything, which is what makes "predictions must never change" enforceable rather than aspirational |
 
 ---
 
@@ -127,7 +128,7 @@ Worked one at a time. Answered ones move to the decision log above.
 | 2 | Schema design | **Drafted** in `docs/V2_SCHEMA.md`, awaiting review |
 | 5 | Are groups per-player or per-season? | Proposed in schema (per-player) — confirm |
 | 6 | Does player identity persist across seasons? | Proposed in schema (yes, keyed on email) — confirm |
-| 7 | Auth: email-only, magic links, or accounts? | Proposed in schema (email-only) — confirm, and decide whether editing before lock is a Phase 1 requirement |
+| 7 | Auth: email-only, magic links, or accounts? | **Answered** → decision 12: magic link, editing allowed until lock |
 | 3 | Supabase: revive the dormant project, start fresh, or an alternative? Paid tier? | Open — blocks applying the schema |
 | 4 | What is port-worthy from the MVP's entry path? | Open — needs narrow review |
 | 8 | Where does the domain point during the transition? | Open — not urgent |

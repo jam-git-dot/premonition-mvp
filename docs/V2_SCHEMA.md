@@ -91,26 +91,47 @@ player_groups (
 
 ### Predictions — the sacred part
 
+Players can edit their prediction until the deadline, so predictions are **versioned rather
+than mutated**. Editing never overwrites anything: each save writes a new version, and the
+previous one stays on disk forever.
+
+This is what makes "V2 MUST NOT CHANGE PEOPLE'S PREDICTIONS" enforceable rather than aspirational.
+If someone ever says *"that's not what I picked"*, the full history is right there with
+timestamps — instead of being reconstructed from a personal offline backup.
+
 ```sql
 predictions (
-  id            uuid primary key,
-  season_id     uuid not null references seasons(id),
-  player_id     uuid not null references players(id),
-  submitted_at  timestamptz not null default now(),
-  locked_at     timestamptz,
-  checksum      text not null,          -- hash of the ordered team list
-  unique (season_id, player_id)         -- one prediction per player per season
+  id                  uuid primary key,
+  season_id           uuid not null references seasons(id),
+  player_id           uuid not null references players(id),
+  created_at          timestamptz not null default now(),
+  locked_at           timestamptz,          -- set at predictions_close_at
+  current_version_id  uuid,                 -- the live version
+  unique (season_id, player_id)             -- one prediction per player per season
 )
 
--- One row per ranked position, rather than a single JSON blob.
-prediction_rankings (
+-- Every save appends a version. Nothing is ever updated or deleted.
+prediction_versions (
+  id             uuid primary key,
   prediction_id  uuid not null references predictions(id),
-  position       int  not null check (position >= 1),
-  team_id        uuid not null references teams(id),
-  primary key (prediction_id, position),
-  unique (prediction_id, team_id)       -- a team cannot appear twice
+  version_no     int  not null,
+  submitted_at   timestamptz not null default now(),
+  checksum       text not null,             -- hash of this version's ordered team list
+  unique (prediction_id, version_no)
+)
+
+-- One row per ranked position, hanging off a version rather than a JSON blob.
+prediction_rankings (
+  version_id  uuid not null references prediction_versions(id),
+  position    int  not null check (position >= 1),
+  team_id     uuid not null references teams(id),
+  primary key (version_id, position),
+  unique (version_id, team_id)              -- a team cannot appear twice
 )
 ```
+
+`current_version_id` is the only field that ever changes, and it only moves forward. At
+`predictions_close_at` the lock job stamps `locked_at`, after which even that is frozen.
 
 **Why rows instead of a JSON blob** (the MVP stored `rankings jsonb`):
 
@@ -187,7 +208,13 @@ membership isn't versioned per season, so if your friend groups change year to y
 shows current membership rather than membership at the time. The alternative — putting
 `season_id` on `player_groups` — is more accurate and slightly more work.
 
-**3. No accounts in Phase 1.** Email plus display name is captured, with no password and no
-login. It's the fastest path to shipping in 7 days and matches how the MVP worked. The
-consequence: a player cannot return to edit their own prediction before the deadline without
-some form of magic link. Worth deciding whether editing-before-lock is a Phase 1 requirement.
+**3. RESOLVED 2026-08-07 — editing before lock is a Phase 1 requirement.** Players can change
+their prediction until `predictions_close_at`. This is why predictions are versioned above.
+
+Identity is proven by **magic link** (Supabase Auth `signInWithOtp`): the player enters their
+email, receives a one-time link, and clicks it to edit. No passwords, no accounts to manage,
+and it's built into the database platform already in use.
+
+It also serves the integrity requirement directly. The notes call for confirming "the predictor
+ID matches the log of their predictions" — magic-link ownership of the email address *is* that
+confirmation, done at the moment of every edit rather than as an after-the-fact audit.
