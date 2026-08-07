@@ -72,6 +72,8 @@ season. Emails are captured at entry precisely so players can be pulled back whe
 | 7 | **Tech stack is not outdated** — no stack-shopping | React + Vite + Tailwind + Supabase is current; the MVP's failures were architecture and data integrity, not tooling |
 | 8 | **Match results as the atomic append-only log** | Standings and scores become derived values, so nothing can silently rewrite history |
 | 9 | **Engagement features out of scope** | No weekly predictions; v2 keeps the season-long format |
+| 10 | **Next.js** | Server rendering gives shareable player pages and server-side data fetching (the fix for the 2.8 MB bundle); predictions get written server-side where they can't be tampered with. Migrating to it later would be a real rewrite |
+| 11 | **TypeScript** | Eliminates the MVP's worst bug class — a renamed or mistyped field silently becoming `undefined` inside a score calculation |
 
 ---
 
@@ -121,14 +123,14 @@ Worked one at a time. Answered ones move to the decision log above.
 
 | # | Question | Status |
 |---|---|---|
-| 1 | Framework and language for the v2 scaffold (Vite vs Next.js, TypeScript vs JS) | **Open — next** |
-| 2 | Schema design: seasons, players, predictions, groups, matches | Open — the critical one |
-| 3 | Supabase: revive the dormant project, start fresh, or an alternative? Paid tier? | Open |
+| 1 | Framework and language for the v2 scaffold | **Answered** → decisions 10 & 11 |
+| 2 | Schema design | **Drafted** in `docs/V2_SCHEMA.md`, awaiting review |
+| 5 | Are groups per-player or per-season? | Proposed in schema (per-player) — confirm |
+| 6 | Does player identity persist across seasons? | Proposed in schema (yes, keyed on email) — confirm |
+| 7 | Auth: email-only, magic links, or accounts? | Proposed in schema (email-only) — confirm, and decide whether editing before lock is a Phase 1 requirement |
+| 3 | Supabase: revive the dormant project, start fresh, or an alternative? Paid tier? | Open — blocks applying the schema |
 | 4 | What is port-worthy from the MVP's entry path? | Open — needs narrow review |
-| 5 | How are groups defined, and can a player join one after submitting? | Open |
-| 6 | Does player identity persist across seasons (career stats)? | Open |
-| 7 | Auth: email-only capture, magic links, or accounts? | Open |
-| 8 | Where does the domain point during the transition? | Open |
+| 8 | Where does the domain point during the transition? | Open — not urgent |
 
 **Note on the code review:** the notes ask for a comprehensive review of the MVP codebase. With
 7 days on the clock, that should be narrowed to the prediction-entry path only (question 4).
